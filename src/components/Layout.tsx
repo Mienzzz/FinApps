@@ -63,7 +63,6 @@ export default function Layout({ children, user }: LayoutProps) {
     { path: '/transactions', icon: ArrowLeftRight, label: userProfile?.language === 'id' ? 'Transaksi' : 'Transactions' },
     { path: '/wallets', icon: Wallet, label: userProfile?.language === 'id' ? 'Dompet' : 'Wallets' },
     { path: '/debts', icon: HandCoins, label: userProfile?.language === 'id' ? 'Hutang' : 'Debts' },
-    { path: '/ai', icon: Sparkles, label: 'AI Advisor' },
     { path: '/settings', icon: SettingsIcon, label: userProfile?.language === 'id' ? 'Pengaturan' : 'Settings' },
   ];
 

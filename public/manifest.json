@@ -1,7 +1,7 @@
 {
   "name": "FinApp's Financial Tracker",
   "short_name": "FinApp's",
-  "description": "Track your income, expenses, and financial health with AI.",
+  "description": "Track your income, expenses, and financial health.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",

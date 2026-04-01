@@ -13,7 +13,6 @@ import Dashboard from './components/Dashboard';
 import Transactions from './components/Transactions';
 import Wallets from './components/Wallets';
 import Debts from './components/Debts';
-import AIAdvisor from './components/AIAdvisor';
 import Settings from './components/Settings';
 import { Loader2, AlertCircle } from 'lucide-react';
 
@@ -70,10 +69,6 @@ export default function App() {
           <Route 
             path="/debts" 
             element={user ? <Layout user={user}><Debts /></Layout> : <Navigate to="/login" />} 
-          />
-          <Route 
-            path="/ai" 
-            element={user ? <Layout user={user}><AIAdvisor /></Layout> : <Navigate to="/login" />} 
           />
           <Route 
             path="/settings" 
