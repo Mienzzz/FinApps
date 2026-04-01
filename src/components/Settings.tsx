@@ -42,12 +42,14 @@ export default function Settings() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth.currentUser) return;
+    if (!auth.currentUser || !profile) return;
     setSaving(true);
     try {
       await updateDoc(doc(db, 'users', auth.currentUser.uid), {
         displayName,
         currency,
+        theme: profile.theme,
+        language: profile.language
       });
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
@@ -56,6 +58,16 @@ export default function Settings() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const toggleTheme = async (newTheme: 'light' | 'dark') => {
+    if (!auth.currentUser || !profile) return;
+    setProfile({ ...profile, theme: newTheme });
+  };
+
+  const toggleLanguage = async (newLang: 'en' | 'id') => {
+    if (!auth.currentUser || !profile) return;
+    setProfile({ ...profile, language: newLang });
   };
 
   if (loading) return (
@@ -69,14 +81,14 @@ export default function Settings() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary">
-            <SettingsIcon size={28} />
+      <div className="flex items-center justify-between gap-6">
+        <div className="flex items-center gap-6">
+          <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner border border-primary/20">
+            <SettingsIcon size={24} />
           </div>
           <div>
-            <h2 className="text-3xl font-black">{profile?.language === 'id' ? 'Pengaturan' : 'Settings'}</h2>
-            <p className={`text-sm ${isDark ? 'text-white/40' : 'text-slate-400'}`}>
+            <h2 className="text-3xl font-bold tracking-tight">{profile?.language === 'id' ? 'Pengaturan' : 'Settings'}</h2>
+            <p className={`text-sm font-medium mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
               {profile?.language === 'id' ? 'Kelola profil dan preferensi aplikasimu' : 'Manage your profile and app preferences'}
             </p>
           </div>
@@ -96,56 +108,56 @@ export default function Settings() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Profile Section */}
         <div className="md:col-span-2 space-y-6">
-          <form onSubmit={handleSave} className="glass-card space-y-6">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="p-3 bg-primary/20 rounded-2xl text-primary">
-                <User size={24} />
+          <form onSubmit={handleSave} className="glass-card p-8 space-y-8 rounded-3xl border border-border shadow-xl">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-primary/10 rounded-xl text-primary shadow-inner">
+                <User size={20} />
               </div>
-              <h3 className="text-xl font-bold">{profile?.language === 'id' ? 'Profil Pengguna' : 'User Profile'}</h3>
+              <h3 className="text-xl font-bold tracking-tight">{profile?.language === 'id' ? 'Profil Pengguna' : 'User Profile'}</h3>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                <label className={`block text-xs font-bold mb-2 uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-slate-400'}`}>
+                <label className={`block text-xs font-black mb-2 uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                   {profile?.language === 'id' ? 'Nama Lengkap' : 'Full Name'}
                 </label>
-                <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+                <div className="relative group">
+                  <User className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" size={20} />
                   <input
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="input-field w-full pl-12"
+                    className="input-field w-full pl-16 py-4 text-lg rounded-2xl shadow-sm border-border focus:ring-4 focus:ring-primary/10 transition-all"
                     placeholder="Enter your name"
                   />
                 </div>
               </div>
 
               <div>
-                <label className={`block text-xs font-bold mb-2 uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-slate-400'}`}>
+                <label className={`block text-xs font-black mb-2 uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                   Email
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+                  <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                   <input
                     type="email"
                     value={profile?.email}
                     disabled
-                    className="input-field w-full pl-12 opacity-50 cursor-not-allowed"
+                    className="input-field w-full pl-16 py-4 text-lg rounded-2xl opacity-50 cursor-not-allowed bg-slate-100 dark:bg-white/5 border-border"
                   />
                 </div>
               </div>
 
               <div>
-                <label className={`block text-xs font-bold mb-2 uppercase tracking-widest ${isDark ? 'text-white/40' : 'text-slate-400'}`}>
+                <label className={`block text-xs font-black mb-2 uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                   {profile?.language === 'id' ? 'Mata Uang' : 'Currency'}
                 </label>
-                <div className="relative">
-                  <Coins className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+                <div className="relative group">
+                  <Coins className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" size={20} />
                   <select
                     value={currency}
                     onChange={(e) => setCurrency(e.target.value)}
-                    className="input-field w-full pl-12 appearance-none"
+                    className="input-field w-full pl-16 py-4 text-lg rounded-2xl shadow-sm border-border focus:ring-4 focus:ring-primary/10 transition-all appearance-none"
                   >
                     <option value="IDR">IDR - Indonesian Rupiah</option>
                     <option value="USD">USD - US Dollar</option>
@@ -154,15 +166,76 @@ export default function Settings() {
                   </select>
                 </div>
               </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label className={`block text-xs font-black mb-2 uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                    {profile?.language === 'id' ? 'Bahasa' : 'Language'}
+                  </label>
+                  <div className="flex p-1.5 bg-slate-100 dark:bg-white/5 rounded-2xl border border-border shadow-inner">
+                    <button
+                      type="button"
+                      onClick={() => toggleLanguage('id')}
+                      className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${
+                        profile?.language === 'id' 
+                          ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-md' 
+                          : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      Indonesia
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toggleLanguage('en')}
+                      className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${
+                        profile?.language === 'en' 
+                          ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-md' 
+                          : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      English
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className={`block text-xs font-black mb-2 uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                    {profile?.language === 'id' ? 'Tema' : 'Theme'}
+                  </label>
+                  <div className="flex p-1.5 bg-slate-100 dark:bg-white/5 rounded-2xl border border-border shadow-inner">
+                    <button
+                      type="button"
+                      onClick={() => toggleTheme('light')}
+                      className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${
+                        profile?.theme === 'light' 
+                          ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-md' 
+                          : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      Light
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toggleTheme('dark')}
+                      className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${
+                        profile?.theme === 'dark' 
+                          ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-md' 
+                          : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      Dark
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={saving}
-              className="btn-primary w-full flex items-center justify-center gap-2"
+              className="btn-primary w-full flex items-center justify-center gap-3 py-5 shadow-xl shadow-primary/20 rounded-2xl"
             >
-              {saving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-              {saving ? 'Saving...' : (profile?.language === 'id' ? 'Simpan Perubahan' : 'Save Changes')}
+              {saving ? <Loader2 className="animate-spin" size={24} /> : <Save size={24} />}
+              <span className="font-black text-lg tracking-tight">{saving ? 'Saving...' : (profile?.language === 'id' ? 'Simpan Perubahan' : 'Save Changes')}</span>
             </button>
           </form>
 

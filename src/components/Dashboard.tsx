@@ -107,20 +107,21 @@ export default function Dashboard() {
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="lg:col-span-2 bg-primary text-white rounded-2xl p-8 shadow-sm relative overflow-hidden"
+          className="lg:col-span-2 bg-gradient-to-br from-primary via-indigo-600 to-indigo-800 text-white rounded-3xl p-6 shadow-xl shadow-primary/20 relative overflow-hidden group"
         >
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-white/10 transition-all duration-500" />
           <div className="relative z-10">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <p className="text-white/70 text-sm font-medium mb-1">
+                <p className="text-white/70 text-[10px] font-bold uppercase tracking-[0.2em] mb-1">
                   {userProfile?.language === 'id' ? 'Total Saldo' : 'Total Balance'}
                 </p>
-                <h3 className="text-4xl font-bold tracking-tight">
+                <h3 className="text-3xl font-bold tracking-tight">
                   {formatCurrency(totalBalance)}
                 </h3>
               </div>
-              <div className="p-3 bg-white/20 rounded-xl">
-                <WalletIcon size={24} />
+              <div className="p-3 bg-white/10 backdrop-blur-md rounded-xl border border-white/10 shadow-lg">
+                <WalletIcon size={20} className="text-white/80" />
               </div>
             </div>
 
@@ -128,55 +129,59 @@ export default function Dashboard() {
             
             <div className="flex items-center justify-between w-full relative">
               <div className="flex-1 flex flex-col items-center">
-                <div className="flex items-center gap-2 text-white/70 mb-1.5">
-                  <TrendingUp size={14} className="shrink-0" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">
+                <div className="flex items-center gap-2 text-white/90 mb-1.5">
+                  <div className="w-6 h-6 bg-accent rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(16,185,129,0.5)]">
+                    <TrendingUp size={12} className="text-white" />
+                  </div>
+                  <span className="text-[9px] font-bold uppercase tracking-widest">
                     {userProfile?.language === 'id' ? 'Pemasukan' : 'Income'}
                   </span>
                 </div>
-                <p className="text-xl font-bold tracking-tight text-center">{formatCurrency(monthlyIncome)}</p>
+                <p className="text-lg font-bold tracking-tight text-center">{formatCurrency(monthlyIncome)}</p>
               </div>
 
-              <div className="w-px h-10 bg-white/10" />
+              <div className="w-px h-10 bg-white/10 mx-4" />
               
               <div className="flex-1 flex flex-col items-center">
-                <div className="flex items-center gap-2 text-white/70 mb-1.5">
-                  <TrendingDown size={14} className="shrink-0" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">
+                <div className="flex items-center gap-2 text-white/90 mb-1.5">
+                  <div className="w-6 h-6 bg-secondary rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(244,63,94,0.5)]">
+                    <TrendingDown size={12} className="text-white" />
+                  </div>
+                  <span className="text-[9px] font-bold uppercase tracking-widest">
                     {userProfile?.language === 'id' ? 'Pengeluaran' : 'Expense'}
                   </span>
                 </div>
-                <p className="text-xl font-bold tracking-tight text-center">{formatCurrency(monthlyExpense)}</p>
+                <p className="text-lg font-bold tracking-tight text-center">{formatCurrency(monthlyExpense)}</p>
               </div>
             </div>
           </div>
         </motion.div>
 
-        <div className="flex flex-col gap-4">
-          <div className="bg-card border border-border rounded-2xl p-6 flex flex-col justify-between shadow-sm">
+        <div className="flex flex-col gap-6">
+          <div className="bg-card border border-border rounded-3xl p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border-l-4 border-l-primary">
             <div className="flex justify-between items-center">
-              <div className="p-2.5 bg-primary/10 rounded-lg text-primary">
-                <Activity size={20} />
+              <div className="p-3 bg-primary/10 rounded-xl text-primary">
+                <Activity size={24} />
               </div>
-              <span className="text-xs font-bold text-slate-500">
+              <span className="text-xs font-black uppercase tracking-widest text-slate-500">
                 {wallets.length} {userProfile?.language === 'id' ? 'Dompet' : 'Wallets'}
               </span>
             </div>
-            <div className="mt-4">
-              <p className="text-slate-500 text-xs font-medium mb-1">
+            <div className="mt-6">
+              <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-1">
                 {userProfile?.language === 'id' ? 'Status Keuangan' : 'Financial Status'}
               </p>
-              <h4 className="text-xl font-bold">
+              <h4 className="text-2xl font-black tracking-tight">
                 {totalBalance > 0 ? (userProfile?.language === 'id' ? 'Sehat' : 'Healthy') : (userProfile?.language === 'id' ? 'Waspada' : 'Warning')}
               </h4>
             </div>
           </div>
           <button 
             onClick={() => navigate('/transactions')}
-            className="btn-primary w-full flex items-center justify-center gap-2 py-4 shadow-sm"
+            className="btn-primary w-full flex items-center justify-center gap-3 py-5 shadow-xl shadow-primary/20 rounded-3xl"
           >
-            <Plus size={20} />
-            <span className="font-bold">{userProfile?.language === 'id' ? 'Transaksi Baru' : 'New Transaction'}</span>
+            <Plus size={24} />
+            <span className="font-black text-lg tracking-tight">{userProfile?.language === 'id' ? 'Transaksi Baru' : 'New Transaction'}</span>
           </button>
         </div>
       </div>

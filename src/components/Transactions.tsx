@@ -31,6 +31,7 @@ import {
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { formatNumberInput, parseNumberInput } from '../lib/format';
+import { handleFirestoreError, OperationType } from '../lib/error';
 
 export default function Transactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -120,7 +121,7 @@ export default function Transactions() {
       setShowForm(false);
       resetForm();
     } catch (err) {
-      console.error(err);
+      handleFirestoreError(err, OperationType.CREATE, 'transactions');
     } finally {
       setSubmitting(false);
     }
@@ -147,7 +148,7 @@ export default function Transactions() {
         await updateDoc(doc(db, 'wallets', t.toWalletId), { balance: increment(-t.amount) });
       }
     } catch (err) {
-      console.error(err);
+      handleFirestoreError(err, OperationType.DELETE, `transactions/${t.id}`);
     }
   };
 
@@ -193,40 +194,40 @@ export default function Transactions() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h2 className="text-2xl font-bold">{t.title}</h2>
-          <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+          <h2 className="text-3xl font-bold tracking-tight">{t.title}</h2>
+          <p className={`text-sm mt-1 font-medium ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
             {transactions.length} {lang === 'id' ? 'transaksi tercatat' : 'transactions recorded'}
           </p>
         </div>
         <button 
           onClick={() => setShowForm(true)} 
-          className="btn-primary flex items-center gap-2"
+          className="btn-primary flex items-center gap-2 w-full sm:w-auto justify-center px-6 py-3 shadow-lg shadow-primary/20 rounded-xl group"
         >
-          <Plus size={18} />
-          <span className="font-semibold text-sm">{t.add}</span>
+          <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
+          <span className="font-bold text-sm tracking-tight">{t.add}</span>
         </button>
       </div>
 
       {/* Search & Filter */}
       <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+        <div className="relative flex-1 group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" size={18} />
           <input
             type="text"
             placeholder={t.search}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="input-field w-full pl-10 py-2 text-sm"
+            className="input-field w-full pl-12 py-3 text-sm rounded-xl shadow-sm border-border focus:ring-2 focus:ring-primary/10 transition-all"
           />
         </div>
-        <div className="flex p-1 bg-slate-100 dark:bg-white/5 rounded-xl border border-border">
+        <div className="flex p-1 bg-slate-100 dark:bg-white/5 rounded-xl border border-border shadow-inner">
           {(['all', 'income', 'expense', 'transfer'] as const).map((type) => (
             <button
               key={type}
               onClick={() => setFilterType(type)}
-              className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 filterType === type 
                   ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-sm' 
                   : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
@@ -256,34 +257,34 @@ export default function Transactions() {
                   exit={{ opacity: 0, scale: 0.98 }}
                   className="bg-card border border-border rounded-xl p-4 hover:border-primary/50 transition-all group"
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className={`w-12 h-12 rounded-2xl flex-shrink-0 flex items-center justify-center shadow-sm ${
                         transaction.type === 'income' ? 'bg-accent/10 text-accent' : 
                         transaction.type === 'expense' ? 'bg-secondary/10 text-secondary' : 
                         'bg-primary/10 text-primary'
                       }`}>
-                        {transaction.type === 'income' ? <ArrowUpRight size={20} /> : 
-                         transaction.type === 'expense' ? <ArrowDownRight size={20} /> : <ArrowLeftRight size={20} />}
+                        {transaction.type === 'income' ? <ArrowUpRight size={24} /> : 
+                         transaction.type === 'expense' ? <ArrowDownRight size={24} /> : <ArrowLeftRight size={24} />}
                       </div>
-                      <div>
-                        <p className="font-bold text-sm">{transaction.category}</p>
-                        <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
-                          <span className="flex items-center gap-1">
-                            <Calendar size={10} />
+                      <div className="min-w-0">
+                        <p className="font-bold text-sm text-foreground truncate">{transaction.category}</p>
+                        <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-1">
+                          <span className="flex items-center gap-1 whitespace-nowrap">
+                            <Calendar size={12} />
                             {format(new Date(transaction.date), 'dd MMM yyyy')}
                           </span>
-                          <span>•</span>
-                          <span className="flex items-center gap-1">
-                            <WalletIcon size={10} />
+                          <span className="text-slate-300 dark:text-slate-700">•</span>
+                          <span className="flex items-center gap-1 truncate">
+                            <WalletIcon size={12} />
                             {wallets.find(w => w.id === transaction.walletId)?.name || 'Wallet'}
                           </span>
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3 flex-shrink-0">
                       <div className="text-right">
-                        <p className={`text-base font-bold ${
+                        <p className={`text-base sm:text-lg font-extrabold tracking-tight ${
                           transaction.type === 'income' ? 'text-accent' : 
                           transaction.type === 'expense' ? 'text-secondary' : 'text-primary'
                         }`}>
@@ -291,7 +292,7 @@ export default function Transactions() {
                           {formatCurrency(transaction.amount)}
                         </p>
                         {transaction.note && (
-                          <p className="text-[10px] text-slate-400 truncate max-w-[120px]">
+                          <p className="text-[10px] text-slate-400 truncate max-w-[80px] sm:max-w-[120px] ml-auto font-medium">
                             {transaction.note}
                           </p>
                         )}
@@ -301,9 +302,9 @@ export default function Transactions() {
                           e.stopPropagation();
                           handleDelete(transaction);
                         }}
-                        className="p-2 text-slate-400 hover:text-secondary hover:bg-secondary/5 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                        className="p-2 text-slate-400 hover:text-secondary hover:bg-secondary/5 rounded-xl transition-all opacity-0 group-hover:opacity-100 hidden md:flex items-center justify-center"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={18} />
                       </button>
                     </div>
                   </div>
@@ -333,7 +334,7 @@ export default function Transactions() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-lg bg-card border border-border rounded-2xl relative z-10 p-6 md:p-8 shadow-2xl"
+              className="w-full max-w-lg bg-card border border-border rounded-2xl relative z-10 p-6 md:p-8 shadow-2xl max-h-[90vh] overflow-y-auto no-scrollbar"
             >
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold">{t.newTransaction}</h3>
@@ -366,7 +367,7 @@ export default function Transactions() {
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-500 ml-1">{t.amount}</label>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-slate-400">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">
                       {userProfile?.currency || 'IDR'}
                     </span>
                     <input
@@ -374,7 +375,7 @@ export default function Transactions() {
                       required
                       value={amount}
                       onChange={(e) => setAmount(formatNumberInput(e.target.value, lang === 'id' ? 'id-ID' : 'en-US'))}
-                      className="input-field w-full pl-16 py-3 text-2xl font-bold text-primary"
+                      className="input-field w-full pl-24 py-4 text-2xl font-bold text-primary"
                       placeholder="0"
                     />
                   </div>

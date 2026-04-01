@@ -29,6 +29,7 @@ import {
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { formatNumberInput, parseNumberInput } from '../lib/format';
+import { handleFirestoreError, OperationType } from '../lib/error';
 
 export default function Debts() {
   const [debts, setDebts] = useState<Debt[]>([]);
@@ -151,7 +152,7 @@ export default function Debts() {
       setShowForm(false);
       resetForm();
     } catch (err) {
-      console.error(err);
+      handleFirestoreError(err, OperationType.CREATE, 'debts');
     } finally {
       setSubmitting(false);
     }
@@ -181,7 +182,7 @@ export default function Debts() {
     try {
       await deleteDoc(doc(db, 'debts', id));
     } catch (err) {
-      console.error(err);
+      handleFirestoreError(err, OperationType.DELETE, `debts/${id}`);
     }
   };
 
@@ -212,7 +213,7 @@ export default function Debts() {
   return (
     <div className="space-y-8 pb-20 md:pb-0">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <motion.div 
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
@@ -220,7 +221,7 @@ export default function Debts() {
           <h2 className="text-3xl font-bold tracking-tight">
             {t.title}
           </h2>
-          <p className="text-white/40 text-xs mt-0.5">{debts.length} {t.title.toLowerCase()}</p>
+          <p className="text-slate-500 text-xs mt-0.5 font-medium">{debts.length} {t.title.toLowerCase()}</p>
         </motion.div>
         <motion.button 
           initial={{ opacity: 0, scale: 0.95 }}
@@ -228,10 +229,10 @@ export default function Debts() {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => setShowForm(true)} 
-          className="btn-primary flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl shadow-lg shadow-primary/20"
+          className="btn-primary flex items-center justify-center gap-2 py-3 px-6 rounded-xl shadow-lg shadow-primary/20 group"
         >
-          <Plus size={18} />
-          <span className="font-bold text-sm">{t.add}</span>
+          <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
+          <span className="font-bold text-sm tracking-tight">{t.add}</span>
         </motion.button>
       </div>
 
@@ -275,22 +276,22 @@ export default function Debts() {
       {/* Filters & Search */}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-primary transition-colors" size={18} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" size={18} />
           <input
             type="text"
             placeholder={t.search}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="input-field w-full pl-11 py-2.5 bg-white/5 border-white/10 focus:border-primary/50 text-sm"
+            className="input-field w-full pl-12 py-3 text-sm rounded-xl shadow-sm border-border focus:ring-2 focus:ring-primary/10 transition-all"
           />
         </div>
-        <div className="flex p-1 bg-white/5 rounded-xl border border-white/10">
+        <div className="flex p-1 bg-slate-100 dark:bg-white/5 rounded-xl border border-border shadow-inner">
           {(['all', 'debt', 'receivable'] as const).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
               className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                filter === f ? 'bg-primary text-white shadow-md shadow-primary/20' : 'text-white/40 hover:text-white'
+                filter === f ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               {f === 'all' ? t.all : f === 'debt' ? t.myDebts : t.myReceivables}
@@ -427,7 +428,7 @@ export default function Debts() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="w-full max-w-lg glass-card bg-card p-8 space-y-6 relative z-10 shadow-2xl border-white/10"
+              className="w-full max-w-lg glass-card bg-card p-8 space-y-6 relative z-10 shadow-2xl border-white/10 max-h-[90vh] overflow-y-auto no-scrollbar"
             >
               <div className="flex justify-between items-center">
                 <div>
@@ -466,7 +467,7 @@ export default function Debts() {
                       required
                       value={personName}
                       onChange={(e) => setPersonName(e.target.value)}
-                      className="input-field w-full pl-11 py-3 bg-white/5 border-white/10 focus:border-primary/50 text-sm"
+                      className="input-field w-full pl-14 py-3 bg-white/5 border-white/10 focus:border-primary/50 text-sm"
                       placeholder={t.personPlaceholder}
                     />
                   </div>
@@ -475,7 +476,7 @@ export default function Debts() {
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-white/40 ml-1">{t.amount}</label>
                   <div className="relative group">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold text-base">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold text-sm">
                       {userProfile?.currency || 'IDR'}
                     </span>
                     <input
@@ -483,7 +484,7 @@ export default function Debts() {
                       required
                       value={amount}
                       onChange={(e) => setAmount(formatNumberInput(e.target.value, userProfile?.language === 'id' ? 'id-ID' : 'en-US'))}
-                      className="input-field w-full pl-16 py-4 bg-white/5 border-white/10 focus:border-primary/50 text-2xl font-bold text-primary"
+                      className="input-field w-full pl-24 py-4 bg-white/5 border-white/10 focus:border-primary/50 text-2xl font-bold text-primary"
                       placeholder="0"
                     />
                   </div>
@@ -498,7 +499,7 @@ export default function Debts() {
                         type="date"
                         value={dueDate}
                         onChange={(e) => setDueDate(e.target.value)}
-                        className="input-field w-full pl-11 py-3 bg-white/5 border-white/10 focus:border-primary/50 text-sm"
+                        className="input-field w-full pl-14 py-3 bg-white/5 border-white/10 focus:border-primary/50 text-sm"
                       />
                     </div>
                   </div>

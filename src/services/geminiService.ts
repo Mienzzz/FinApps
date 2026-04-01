@@ -1,7 +1,13 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Transaction, Debt, Wallet } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
+const getAI = () => {
+  const apiKey = process.env.GEMINI_API_KEY || ((import.meta as any).env.VITE_GEMINI_API_KEY as string);
+  if (!apiKey) {
+    throw new Error("Gemini API Key is missing. Please set GEMINI_API_KEY or VITE_GEMINI_API_KEY environment variable in your deployment settings.");
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
 export async function getFinancialAdvice(
   transactions: Transaction[],
@@ -9,6 +15,7 @@ export async function getFinancialAdvice(
   wallets: Wallet[],
   language: 'en' | 'id' = 'id'
 ) {
+  const ai = getAI();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `
@@ -50,6 +57,7 @@ export async function askFinancialQuestion(
   wallets: Wallet[],
   language: 'en' | 'id' = 'id'
 ) {
+  const ai = getAI();
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: `

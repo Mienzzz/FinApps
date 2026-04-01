@@ -124,8 +124,11 @@ export default function AIAdvisor() {
     try {
       const data = await getFinancialAdvice(transactions, debts, wallets, userProfile?.language || 'id');
       setHealth(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      if (err.message?.includes("API Key is missing")) {
+        setChat(prev => [...prev, { role: 'ai', text: "⚠️ Gemini API Key is missing. Please set GEMINI_API_KEY or VITE_GEMINI_API_KEY in your Vercel/deployment environment variables." }]);
+      }
     } finally {
       setLoadingHealth(false);
     }
@@ -143,9 +146,13 @@ export default function AIAdvisor() {
     try {
       const answer = await askFinancialQuestion(userQ, transactions, debts, wallets, userProfile?.language || 'id');
       setChat(prev => [...prev, { role: 'ai', text: answer }]);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setChat(prev => [...prev, { role: 'ai', text: t.error }]);
+      if (err.message?.includes("API Key is missing")) {
+        setChat(prev => [...prev, { role: 'ai', text: "⚠️ Gemini API Key is missing. Please set GEMINI_API_KEY or VITE_GEMINI_API_KEY in your Vercel/deployment environment variables." }]);
+      } else {
+        setChat(prev => [...prev, { role: 'ai', text: t.error }]);
+      }
     } finally {
       setLoadingChat(false);
     }

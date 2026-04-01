@@ -69,14 +69,27 @@ export default function Layout({ children, user }: LayoutProps) {
 
   const isDark = userProfile?.theme !== 'light';
 
+  React.useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDark]);
+
   return (
     <div className={`min-h-screen flex flex-col md:flex-row transition-colors duration-300 ${isDark ? 'dark bg-background text-foreground' : 'bg-slate-50 text-slate-900'}`}>
       {/* Desktop Sidebar */}
       <aside className={`hidden md:flex w-64 flex-col border-r border-border sticky top-0 h-screen z-50 ${isDark ? 'bg-card' : 'bg-white'}`}>
-        <div className="p-6">
-          <h1 className="text-2xl font-bold text-primary">
-            FinApp's
-          </h1>
+        <div className="p-8">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+              <Sparkles className="text-white" size={20} />
+            </div>
+            <h1 className="text-xl font-bold tracking-tight text-primary">
+              FinApp's
+            </h1>
+          </div>
         </div>
         
         <nav className="flex-1 px-3 space-y-1">
@@ -116,40 +129,45 @@ export default function Layout({ children, user }: LayoutProps) {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0">
         {/* Top Bar */}
-        <header className={`border-b border-border p-4 flex items-center justify-between sticky top-0 z-40 ${isDark ? 'bg-background/80 backdrop-blur-md' : 'bg-white/80 backdrop-blur-md'}`}>
+        <header className={`border-b border-border px-6 py-4 flex items-center justify-between sticky top-0 z-40 transition-all ${isDark ? 'bg-background/80 backdrop-blur-xl' : 'bg-white/80 backdrop-blur-xl'}`}>
           <div className="flex items-center gap-4">
             <button 
-              className="md:hidden p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg"
+              className="md:hidden p-2.5 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors border border-border"
               onClick={() => setIsMobileMenuOpen(true)}
             >
               <Menu size={20} />
             </button>
-            <h2 className="text-lg font-bold md:hidden">FinApp's</h2>
+            <div className="md:hidden flex items-center gap-2">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <Sparkles className="text-white" size={16} />
+              </div>
+              <h2 className="text-lg font-bold tracking-tight">FinApp's</h2>
+            </div>
             <div className="hidden md:block">
-              <p className="font-semibold text-base">{userProfile?.displayName || user?.email?.split('@')[0] || 'User'}</p>
-              <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                {userProfile?.language === 'id' ? 'Selamat Datang' : 'Welcome back'}
+              <p className="font-bold text-lg tracking-tight">{userProfile?.displayName || user?.email?.split('@')[0] || 'User'}</p>
+              <p className={`text-xs font-medium ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                {userProfile?.language === 'id' ? 'Selamat Datang Kembali' : 'Welcome back to your finances'}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {/* Language Toggle */}
             <button 
               onClick={toggleLanguage}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all border border-border ${
-                isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-slate-50 hover:bg-slate-100'
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all border border-border font-bold shadow-sm ${
+                isDark ? 'bg-white/5 hover:bg-white/10 text-white' : 'bg-white hover:bg-slate-50 text-slate-700'
               }`}
             >
               <Globe size={16} className="text-primary" />
-              <span className="text-xs font-bold uppercase">{userProfile?.language || 'en'}</span>
+              <span className="text-xs uppercase tracking-widest">{userProfile?.language || 'en'}</span>
             </button>
 
             {/* Theme Toggle */}
             <button 
               onClick={toggleTheme}
-              className={`p-2 rounded-lg transition-all border border-border ${
-                isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-slate-50 hover:bg-slate-100'
+              className={`p-2.5 rounded-xl transition-all border border-border shadow-sm ${
+                isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-white hover:bg-slate-50'
               }`}
             >
               {isDark ? <Sun size={18} className="text-yellow-500" /> : <Moon size={18} className="text-indigo-600" />}

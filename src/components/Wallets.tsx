@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { formatNumberInput, parseNumberInput } from '../lib/format';
+import { handleFirestoreError, OperationType } from '../lib/error';
 
 export default function Wallets() {
   const [wallets, setWallets] = useState<Wallet[]>([]);
@@ -79,7 +80,7 @@ export default function Wallets() {
       setName('');
       setBalance('');
     } catch (err) {
-      console.error(err);
+      handleFirestoreError(err, OperationType.CREATE, 'wallets');
     } finally {
       setSubmitting(false);
     }
@@ -90,7 +91,7 @@ export default function Wallets() {
     try {
       await deleteDoc(doc(db, 'wallets', id));
     } catch (err) {
-      console.error(err);
+      handleFirestoreError(err, OperationType.DELETE, `wallets/${id}`);
     }
   };
 
@@ -152,10 +153,10 @@ export default function Wallets() {
         </div>
         <button 
           onClick={() => setShowForm(true)} 
-          className="btn-primary flex items-center gap-2 px-6 py-3 rounded-xl shadow-lg shadow-primary/20"
+          className="btn-primary flex items-center gap-2 w-full md:w-auto justify-center px-6 py-3 shadow-lg shadow-primary/20 rounded-xl group"
         >
-          <Plus size={20} />
-          <span className="font-bold uppercase tracking-wider text-xs">{t.add}</span>
+          <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
+          <span className="font-bold text-sm tracking-tight">{t.add}</span>
         </button>
       </div>
 
@@ -244,7 +245,7 @@ export default function Wallets() {
               initial={{ scale: 0.95, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 10 }}
-              className="w-full max-w-md glass-card relative z-10 p-8 space-y-6 overflow-hidden"
+              className="w-full max-w-md glass-card relative z-10 p-8 space-y-6 max-h-[90vh] overflow-y-auto no-scrollbar"
             >
               <div className="flex justify-between items-center">
                 <div>
@@ -269,7 +270,7 @@ export default function Wallets() {
                       required
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="input-field w-full pl-11 py-3 text-sm"
+                      className="input-field w-full pl-14 py-3 text-sm"
                       placeholder={t.placeholderName}
                     />
                   </div>
@@ -304,7 +305,7 @@ export default function Wallets() {
                       required
                       value={balance}
                       onChange={(e) => setBalance(formatNumberInput(e.target.value, lang === 'id' ? 'id-ID' : 'en-US'))}
-                      className="input-field w-full pl-16 py-4 text-2xl font-bold text-primary placeholder:text-white/5"
+                      className="input-field w-full pl-24 py-4 text-2xl font-bold text-primary placeholder:text-white/5"
                       placeholder="0"
                     />
                   </div>
