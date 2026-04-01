@@ -1,10 +1,11 @@
-const CACHE_NAME = 'finapps-v5';
+const CACHE_NAME = 'finapps-v6';
 const ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
   '/icon-192.png',
-  '/icon-512.png'
+  '/icon-512.png',
+  '/sw.js'
 ];
 
 self.addEventListener('install', (event) => {
