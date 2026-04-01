@@ -1,14 +1,11 @@
-const CACHE_NAME = 'finapps-v1';
-
+const CACHE_NAME = 'finapps-cache-v1';
 const ASSETS = [
   '/',
-  '/index.html',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png'
 ];
 
-// INSTALL
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
@@ -18,37 +15,24 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// ACTIVATE
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    Promise.all([
-      self.clients.claim(),
-      caches.keys().then((names) =>
-        Promise.all(
-          names.map((name) => {
-            if (name !== CACHE_NAME) {
-              return caches.delete(name);
-            }
-          })
-        )
-      )
-    ])
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+      );
+    })
   );
+  self.clients.claim();
 });
 
-// FETCH
 self.addEventListener('fetch', (event) => {
-  if (!event.request.url.startsWith(self.location.origin)) return;
-
-  // Navigation (halaman)
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match('/index.html'))
+      fetch(event.request).catch(() => caches.match('/'))
     );
     return;
   }
-
-  // Asset (css, js, img)
   event.respondWith(
     caches.match(event.request).then((response) => {
       return response || fetch(event.request);

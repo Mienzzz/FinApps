@@ -1,16 +1,13 @@
 {
-  "id": "finapps-financial-tracker",
   "name": "FinApps Financial Tracker",
   "short_name": "FinApp",
   "description": "Track your income, expenses, and financial health with ease.",
-  "categories": ["finance", "productivity"],
   "start_url": "/",
-  "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
-  "prefer_related_applications": false,
   "background_color": "#0f172a",
   "theme_color": "#8b5cf6",
+  "orientation": "portrait",
+  "scope": "/",
   "icons": [
     {
       "src": "/icon-192.png",
@@ -29,22 +26,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "https://picsum.photos/seed/finapp-wide/1280/720",
-      "sizes": "1280x720",
-      "type": "image/jpeg",
-      "form_factor": "wide",
-      "label": "FinApps Dashboard View"
-    },
-    {
-      "src": "https://picsum.photos/seed/finapp-narrow/720/1280",
-      "sizes": "720x1280",
-      "type": "image/jpeg",
-      "form_factor": "narrow",
-      "label": "FinApps Mobile View"
     }
   ]
 }
