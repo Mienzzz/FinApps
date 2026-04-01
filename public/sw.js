@@ -23,16 +23,16 @@ self.addEventListener('activate', (event) => {
   console.log('SW activate event');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
+      return Promise.all([
+        self.clients.claim(),
+        ...cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
             return caches.delete(cacheName);
           }
         })
-      );
+      ]);
     })
   );
-  return self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {

@@ -1,12 +1,14 @@
 {
   "id": "finapps-financial-tracker",
   "name": "FinApps Financial Tracker",
-  "short_name": "FinApps",
-  "description": "Track your income, expenses, and financial health.",
+  "short_name": "FinApp",
+  "description": "Track your income, expenses, and financial health with ease.",
   "categories": ["finance", "productivity"],
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
+  "prefer_related_applications": false,
   "background_color": "#0f172a",
   "theme_color": "#8b5cf6",
   "icons": [

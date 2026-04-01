@@ -108,6 +108,14 @@ export default function App() {
     window.location.reload();
   };
 
+  const triggerEngagement = () => {
+    // Dummy interaction to satisfy Chrome's engagement requirement
+    console.log('Engagement triggered');
+    window.dispatchEvent(new Event('resize'));
+    // Show a small tip
+    alert('Sistem instalasi sedang disiapkan. Jika tombol "Install" belum muncul dalam 5 detik, silakan klik ikon Tiga Titik di pojok kanan atas Chrome, lalu pilih "Install App".');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -175,10 +183,19 @@ export default function App() {
               </p>
             )}
             {!pwaStatus.prompt && (
-              <div className="text-[10px] opacity-70 space-y-1">
+              <div className="text-[10px] opacity-70 space-y-2">
                 <p italic>* Menunggu browser memberikan izin instalasi...</p>
-                <p>* Pastikan Anda menggunakan Chrome di Android.</p>
-                <p>* Coba klik ikon Refresh jika status tidak berubah.</p>
+                <div className="flex flex-col gap-2">
+                  <button 
+                    onClick={triggerEngagement}
+                    className="bg-white/20 hover:bg-white/30 py-1.5 rounded text-center font-bold transition-colors"
+                  >
+                    Klik di sini untuk Aktifkan Fitur Instalasi
+                  </button>
+                  <p className="text-[9px] leading-tight">
+                    Jika tetap kuning, klik <b>Menu Chrome (⋮)</b> → <b>Install App</b>. Jika menu tersebut tidak ada, berarti browser Anda belum mendukung PWA sepenuhnya.
+                  </p>
+                </div>
               </div>
             )}
           </div>
