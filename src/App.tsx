@@ -25,12 +25,13 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
-  const [showBanner, setShowBanner] = useState(false);
+  const [showBanner, setShowBanner] = useState(true);
   const [pwaStatus, setPwaStatus] = useState<{
     sw: boolean;
     manifest: boolean;
     prompt: boolean;
-  }>({ sw: false, manifest: false, prompt: false });
+    error: string | null;
+  }>({ sw: false, manifest: false, prompt: false, error: null });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -39,18 +40,32 @@ export default function App() {
     });
 
     // PWA Diagnostics
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.ready.then(() => {
-        setPwaStatus(prev => ({ ...prev, sw: true }));
-      });
-    }
+    const checkPWA = async () => {
+      try {
+        if ('serviceWorker' in navigator) {
+          const registration = await navigator.serviceWorker.ready;
+          if (registration) {
+            setPwaStatus(prev => ({ ...prev, sw: true }));
+          }
+        } else {
+          setPwaStatus(prev => ({ ...prev, error: 'Service Worker not supported' }));
+        }
 
-    const manifestLink = document.querySelector('link[rel="manifest"]');
-    if (manifestLink) {
-      setPwaStatus(prev => ({ ...prev, manifest: true }));
-    }
+        const manifestLink = document.querySelector('link[rel="manifest"]');
+        if (manifestLink) {
+          setPwaStatus(prev => ({ ...prev, manifest: true }));
+        } else {
+          setPwaStatus(prev => ({ ...prev, error: 'Manifest link not found' }));
+        }
+      } catch (err) {
+        setPwaStatus(prev => ({ ...prev, error: String(err) }));
+      }
+    };
+
+    checkPWA();
 
     const handleBeforeInstallPrompt = (e: any) => {
+      console.log('beforeinstallprompt fired');
       e.preventDefault();
       setInstallPrompt(e);
       setShowBanner(true);
@@ -58,6 +73,10 @@ export default function App() {
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', () => {
+      console.log('App installed');
+      setShowBanner(false);
+    });
 
     return () => {
       unsubscribe();
@@ -102,7 +121,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      {(showBanner || !pwaStatus.sw) && (
+      {showBanner && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-md">
           <div className="bg-primary text-primary-foreground p-4 rounded-2xl shadow-2xl flex flex-col gap-3 border border-primary/20 backdrop-blur-xl">
             <div className="flex items-center justify-between">
@@ -126,21 +145,22 @@ export default function App() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {pwaStatus.prompt && (
+                {pwaStatus.prompt ? (
                   <button 
                     onClick={handleInstallClick}
                     className="bg-white text-primary px-4 py-2 rounded-xl font-bold text-sm hover:bg-white/90 transition-colors"
                   >
                     Install
                   </button>
+                ) : (
+                  <button 
+                    onClick={handleForceUpdate}
+                    title="Force Update & Clear Cache"
+                    className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/70"
+                  >
+                    <RefreshCw size={18} className="animate-spin" />
+                  </button>
                 )}
-                <button 
-                  onClick={handleForceUpdate}
-                  title="Force Update & Clear Cache"
-                  className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/70"
-                >
-                  <RefreshCw size={18} />
-                </button>
                 <button 
                   onClick={() => setShowBanner(false)}
                   className="p-2 hover:bg-white/10 rounded-lg transition-colors"
@@ -149,10 +169,17 @@ export default function App() {
                 </button>
               </div>
             </div>
-            {!pwaStatus.prompt && (
-              <p className="text-[10px] opacity-70 italic">
-                * Jika "Ready" belum hijau, silakan klik ikon Refresh di atas atau tunggu beberapa detik.
+            {pwaStatus.error && (
+              <p className="text-[10px] text-red-200 bg-red-500/20 p-1 rounded">
+                Error: {pwaStatus.error}
               </p>
+            )}
+            {!pwaStatus.prompt && (
+              <div className="text-[10px] opacity-70 space-y-1">
+                <p italic>* Menunggu browser memberikan izin instalasi...</p>
+                <p>* Pastikan Anda menggunakan Chrome di Android.</p>
+                <p>* Coba klik ikon Refresh jika status tidak berubah.</p>
+              </div>
             )}
           </div>
         </div>

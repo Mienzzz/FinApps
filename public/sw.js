@@ -9,15 +9,18 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
+  console.log('SW install event');
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
+      console.log('SW caching assets');
       return cache.addAll(ASSETS);
     })
   );
 });
 
 self.addEventListener('activate', (event) => {
+  console.log('SW activate event');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
