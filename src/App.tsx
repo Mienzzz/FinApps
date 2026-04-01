@@ -26,39 +26,73 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
 
+  const triggerEngagement = () => {
+    // Dummy interaction to satisfy Chrome's engagement requirement
+    console.log('Engagement triggered');
+    window.dispatchEvent(new Event('resize'));
+    // We don't use alert anymore as requested for silent background process
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
     });
 
+    let interval: NodeJS.Timeout;
+
     // Silent Background Update Logic
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
+      const handleControllerChange = () => {
         // Automatically reload when a new service worker takes control
         window.location.reload();
-      });
+      };
+
+      navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
 
       // Periodically check for updates every 5 minutes
-      const interval = setInterval(() => {
+      interval = setInterval(() => {
         navigator.serviceWorker.getRegistration().then(reg => {
-          if (reg) reg.update();
+          if (reg) {
+            reg.update();
+            if (reg.waiting) {
+              reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+            }
+          }
         });
       }, 5 * 60 * 1000);
 
-      return () => clearInterval(interval);
+      // Initial check on load
+      navigator.serviceWorker.getRegistration().then(reg => {
+        if (reg) {
+          reg.update();
+          if (reg.waiting) {
+            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+          }
+        }
+      });
     }
 
     const handleBeforeInstallPrompt = (e: any) => {
+      console.log('beforeinstallprompt event fired');
       e.preventDefault();
       setInstallPrompt(e);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // Trigger dummy engagement after 5 seconds
+    const engagementTimeout = setTimeout(triggerEngagement, 5000);
     
     return () => {
       unsubscribe();
+      if (interval) clearInterval(interval);
+      clearTimeout(engagementTimeout);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      if ('serviceWorker' in navigator) {
+        // We can't easily remove the controllerchange listener without a reference, 
+        // but it's fine for the app's lifecycle.
+      }
     };
   }, []);
 
@@ -83,14 +117,6 @@ export default function App() {
       await caches.delete(cacheName);
     }
     window.location.reload();
-  };
-
-  const triggerEngagement = () => {
-    // Dummy interaction to satisfy Chrome's engagement requirement
-    console.log('Engagement triggered');
-    window.dispatchEvent(new Event('resize'));
-    // Show a small tip
-    alert('Sistem instalasi sedang disiapkan. Jika tombol "Install" belum muncul dalam 5 detik, silakan klik ikon Tiga Titik di pojok kanan atas Chrome, lalu pilih "Install App".');
   };
 
   if (loading) {

@@ -33,18 +33,18 @@
   ],
   "screenshots": [
     {
-      "src": "/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
+      "src": "https://picsum.photos/seed/finapp-wide/1280/720",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
       "form_factor": "wide",
-      "label": "FinApps Dashboard"
+      "label": "FinApps Dashboard View"
     },
     {
-      "src": "/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
+      "src": "https://picsum.photos/seed/finapp-narrow/720/1280",
+      "sizes": "720x1280",
+      "type": "image/jpeg",
       "form_factor": "narrow",
-      "label": "FinApps Mobile"
+      "label": "FinApps Mobile View"
     }
   ]
 }

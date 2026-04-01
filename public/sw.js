@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finapps-v6';
+const CACHE_NAME = 'finapps-v7-' + Date.now();
 const ASSETS = [
   '/',
   '/index.html',
@@ -22,17 +22,25 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   console.log('SW activate event');
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all([
-        self.clients.claim(),
-        ...cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      ]);
-    })
+    Promise.all([
+      self.clients.claim(),
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (!cacheName.startsWith('finapps-v7')) {
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+    ])
   );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('fetch', (event) => {
