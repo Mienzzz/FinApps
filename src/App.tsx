@@ -14,7 +14,7 @@ import Transactions from './components/Transactions';
 import Wallets from './components/Wallets';
 import Debts from './components/Debts';
 import Settings from './components/Settings';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Download, X } from 'lucide-react';
 
 // Error Boundary Component (Simplified for lint)
 const ErrorBoundary = ({ children }: { children: React.ReactNode }) => {
@@ -24,14 +24,38 @@ const ErrorBoundary = ({ children }: { children: React.ReactNode }) => {
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
     });
-    return () => unsubscribe();
+
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+      setShowBanner(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
   }, []);
+
+  const handleInstallClick = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setInstallPrompt(null);
+      setShowBanner(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -46,6 +70,35 @@ export default function App() {
 
   return (
     <ErrorBoundary>
+      {showBanner && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-md">
+          <div className="bg-primary text-primary-foreground p-4 rounded-2xl shadow-2xl flex items-center justify-between border border-primary/20 backdrop-blur-xl">
+            <div className="flex items-center gap-3">
+              <div className="bg-white/20 p-2 rounded-xl">
+                <Download size={20} />
+              </div>
+              <div>
+                <p className="font-bold text-sm">Install FinApp's</p>
+                <p className="text-xs opacity-80">Add to home screen for better experience</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={handleInstallClick}
+                className="bg-white text-primary px-4 py-2 rounded-xl font-bold text-sm hover:bg-white/90 transition-colors"
+              >
+                Install
+              </button>
+              <button 
+                onClick={() => setShowBanner(false)}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <Router>
         <Routes>
           {/* Public Routes */}
