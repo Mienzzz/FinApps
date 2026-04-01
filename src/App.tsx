@@ -25,13 +25,6 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
-  const [showBanner, setShowBanner] = useState(true);
-  const [pwaStatus, setPwaStatus] = useState<{
-    sw: boolean;
-    manifest: boolean;
-    prompt: boolean;
-    error: string | null;
-  }>({ sw: false, manifest: false, prompt: false, error: null });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -39,45 +32,30 @@ export default function App() {
       setLoading(false);
     });
 
-    // PWA Diagnostics
-    const checkPWA = async () => {
-      try {
-        if ('serviceWorker' in navigator) {
-          const registration = await navigator.serviceWorker.ready;
-          if (registration) {
-            setPwaStatus(prev => ({ ...prev, sw: true }));
-          }
-        } else {
-          setPwaStatus(prev => ({ ...prev, error: 'Service Worker not supported' }));
-        }
+    // Silent Background Update Logic
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        // Automatically reload when a new service worker takes control
+        window.location.reload();
+      });
 
-        const manifestLink = document.querySelector('link[rel="manifest"]');
-        if (manifestLink) {
-          setPwaStatus(prev => ({ ...prev, manifest: true }));
-        } else {
-          setPwaStatus(prev => ({ ...prev, error: 'Manifest link not found' }));
-        }
-      } catch (err) {
-        setPwaStatus(prev => ({ ...prev, error: String(err) }));
-      }
-    };
+      // Periodically check for updates every 5 minutes
+      const interval = setInterval(() => {
+        navigator.serviceWorker.getRegistration().then(reg => {
+          if (reg) reg.update();
+        });
+      }, 5 * 60 * 1000);
 
-    checkPWA();
+      return () => clearInterval(interval);
+    }
 
     const handleBeforeInstallPrompt = (e: any) => {
-      console.log('beforeinstallprompt fired');
       e.preventDefault();
       setInstallPrompt(e);
-      setShowBanner(true);
-      setPwaStatus(prev => ({ ...prev, prompt: true }));
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', () => {
-      console.log('App installed');
-      setShowBanner(false);
-    });
-
+    
     return () => {
       unsubscribe();
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -90,7 +68,6 @@ export default function App() {
     const { outcome } = await installPrompt.userChoice;
     if (outcome === 'accepted') {
       setInstallPrompt(null);
-      setShowBanner(false);
     }
   };
 
@@ -129,76 +106,15 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      {showBanner && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-md">
-          <div className="bg-primary text-primary-foreground p-4 rounded-2xl shadow-2xl flex flex-col gap-3 border border-primary/20 backdrop-blur-xl">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="bg-white/20 p-2 rounded-xl">
-                  <Download size={20} />
-                </div>
-                <div>
-                  <p className="font-bold text-sm">FinApp's PWA Status</p>
-                  <div className="flex gap-2 mt-1">
-                    <span className="flex items-center gap-1 text-[10px] bg-white/10 px-1.5 py-0.5 rounded">
-                      {pwaStatus.sw ? <ShieldCheck size={10} className="text-green-400" /> : <ShieldAlert size={10} className="text-red-400" />} SW
-                    </span>
-                    <span className="flex items-center gap-1 text-[10px] bg-white/10 px-1.5 py-0.5 rounded">
-                      {pwaStatus.manifest ? <ShieldCheck size={10} className="text-green-400" /> : <ShieldAlert size={10} className="text-red-400" />} Manifest
-                    </span>
-                    <span className="flex items-center gap-1 text-[10px] bg-white/10 px-1.5 py-0.5 rounded">
-                      {pwaStatus.prompt ? <ShieldCheck size={10} className="text-green-400" /> : <ShieldAlert size={10} className="text-yellow-400" />} Ready
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {pwaStatus.prompt ? (
-                  <button 
-                    onClick={handleInstallClick}
-                    className="bg-white text-primary px-4 py-2 rounded-xl font-bold text-sm hover:bg-white/90 transition-colors"
-                  >
-                    Install
-                  </button>
-                ) : (
-                  <button 
-                    onClick={handleForceUpdate}
-                    title="Force Update & Clear Cache"
-                    className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/70"
-                  >
-                    <RefreshCw size={18} className="animate-spin" />
-                  </button>
-                )}
-                <button 
-                  onClick={() => setShowBanner(false)}
-                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-            </div>
-            {pwaStatus.error && (
-              <p className="text-[10px] text-red-200 bg-red-500/20 p-1 rounded">
-                Error: {pwaStatus.error}
-              </p>
-            )}
-            {!pwaStatus.prompt && (
-              <div className="text-[10px] opacity-70 space-y-2">
-                <p italic>* Menunggu browser memberikan izin instalasi...</p>
-                <div className="flex flex-col gap-2">
-                  <button 
-                    onClick={triggerEngagement}
-                    className="bg-white/20 hover:bg-white/30 py-1.5 rounded text-center font-bold transition-colors"
-                  >
-                    Klik di sini untuk Aktifkan Fitur Instalasi
-                  </button>
-                  <p className="text-[9px] leading-tight">
-                    Jika tetap kuning, klik <b>Menu Chrome (⋮)</b> → <b>Install App</b>. Jika menu tersebut tidak ada, berarti browser Anda belum mendukung PWA sepenuhnya.
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
+      {installPrompt && (
+        <div className="fixed bottom-6 right-6 z-[100] animate-bounce">
+          <button 
+            onClick={handleInstallClick}
+            className="bg-primary text-white p-4 rounded-full shadow-2xl flex items-center gap-2 hover:scale-110 transition-transform"
+          >
+            <Download size={24} />
+            <span className="font-bold pr-2">Install App</span>
+          </button>
         </div>
       )}
       <Router>
