@@ -24,18 +24,6 @@ const ErrorBoundary = ({ children }: { children: React.ReactNode }) => {
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [installPrompt, setInstallPrompt] = useState<any>(null);
-  const [isStandalone, setIsStandalone] = useState(false);
-
-  useEffect(() => {
-    // Check if app is running in standalone mode
-    const checkStandalone = () => {
-      const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
-      setIsStandalone(isStandaloneMode);
-    };
-    checkStandalone();
-    window.matchMedia('(display-mode: standalone)').addEventListener('change', checkStandalone);
-  }, []);
 
   const triggerEngagement = () => {
     // Dummy interaction to satisfy Chrome's engagement requirement
@@ -84,14 +72,6 @@ export default function App() {
       });
     }
 
-    const handleBeforeInstallPrompt = (e: any) => {
-      console.log('beforeinstallprompt event fired');
-      e.preventDefault();
-      setInstallPrompt(e);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
     // Trigger dummy engagement after 5 seconds
     const engagementTimeout = setTimeout(triggerEngagement, 5000);
 
@@ -126,21 +106,8 @@ export default function App() {
       activityEvents.forEach(event => {
         window.removeEventListener(event, resetInactivityTimer);
       });
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
   }, [user]);
-
-  const handleInstallClick = async () => {
-    if (!installPrompt) {
-      alert('Untuk menginstal aplikasi ini secara manual:\n1. Klik ikon tiga titik di pojok kanan atas browser\n2. Pilih "Instal Aplikasi" atau "Tambahkan ke Layar Utama"');
-      return;
-    }
-    installPrompt.prompt();
-    const { outcome } = await installPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setInstallPrompt(null);
-    }
-  };
 
   const handleForceUpdate = async () => {
     if ('serviceWorker' in navigator) {
@@ -169,27 +136,6 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      {user && !isStandalone && (
-        <div className="fixed bottom-6 right-6 z-[100]">
-          <button 
-            onClick={handleInstallClick}
-            className="group relative flex items-center justify-center"
-          >
-            {/* Tooltip for manual install if prompt is missing */}
-            {!installPrompt && (
-              <div className="absolute bottom-full mb-2 right-0 w-48 bg-slate-800 text-white text-xs p-2 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                Klik menu browser (tiga titik) lalu pilih "Instal Aplikasi" atau "Tambahkan ke Layar Utama"
-              </div>
-            )}
-            <div className={`bg-primary text-white p-4 rounded-full shadow-2xl flex items-center gap-2 hover:scale-110 transition-transform ${!installPrompt ? 'opacity-70 grayscale-[0.5]' : 'animate-bounce'}`}>
-              <Download size={24} />
-              <span className="font-bold pr-2">
-                {installPrompt ? 'Instal App' : 'Cara Instal'}
-              </span>
-            </div>
-          </button>
-        </div>
-      )}
       <Router>
         <Routes>
           {/* Public Routes */}

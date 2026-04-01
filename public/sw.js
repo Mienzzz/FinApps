@@ -1,63 +1,58 @@
-const CACHE_NAME = 'finapps-v7-' + Date.now();
+const CACHE_NAME = 'finapps-v1';
+
 const ASSETS = [
   '/',
+  '/login',
   '/index.html',
   '/manifest.json',
   '/icon-192.png',
-  '/icon-512.png',
-  '/sw.js'
+  '/icon-512.png'
 ];
 
+// INSTALL
 self.addEventListener('install', (event) => {
-  console.log('SW install event');
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('SW caching assets');
       return cache.addAll(ASSETS);
     })
   );
 });
 
+// ACTIVATE
 self.addEventListener('activate', (event) => {
-  console.log('SW activate event');
   event.waitUntil(
     Promise.all([
       self.clients.claim(),
-      caches.keys().then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            if (!cacheName.startsWith('finapps-v7')) {
-              return caches.delete(cacheName);
+      caches.keys().then((names) =>
+        Promise.all(
+          names.map((name) => {
+            if (name !== CACHE_NAME) {
+              return caches.delete(name);
             }
           })
-        );
-      })
+        )
+      )
     ])
   );
 });
 
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-});
-
+// FETCH
 self.addEventListener('fetch', (event) => {
-  // Skip cross-origin requests
   if (!event.request.url.startsWith(self.location.origin)) return;
 
+  // Navigation (halaman)
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+
+  // Asset (css, js, img)
   event.respondWith(
     caches.match(event.request).then((response) => {
-      if (response) {
-        return response;
-      }
-      return fetch(event.request).catch(() => {
-        // Fallback for failed fetches (e.g. offline)
-        if (event.request.mode === 'navigate') {
-          return caches.match('/');
-        }
-      });
+      return response || fetch(event.request);
     })
   );
 });
