@@ -8,7 +8,7 @@ service cloud.firestore {
     // Fields: uid, displayName, email, language, theme, currency
     //
     // Collection: /transactions/{transactionId}
-    // Fields: uid, type, amount, category, note, date, walletId, toWalletId
+    // Fields: uid, type, amount, category, note, date, walletId, toWalletId, receiptImage
     //
     // Collection: /debts/{debtId}
     // Fields: uid, type, personName, amount, remainingAmount, dueDate, status, note
@@ -49,7 +49,10 @@ service cloud.firestore {
              data.uid == request.auth.uid &&
              data.type in ['income', 'expense', 'transfer'] &&
              data.amount is number &&
-             data.date is string;
+             data.date is string &&
+             data.category is string && data.category.size() < 100 &&
+             data.note is string && data.note.size() < 500 &&
+             (!('receiptImage' in data) || (data.receiptImage is string && data.receiptImage.size() < 1000000));
     }
 
     function isValidDebt(data) {

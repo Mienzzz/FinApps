@@ -2,7 +2,13 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Transaction, Debt, Wallet } from "../types";
 
 const getAI = () => {
-  const apiKey = process.env.GEMINI_API_KEY || ((import.meta as any).env.VITE_GEMINI_API_KEY as string);
+  let apiKey = "";
+  try {
+    apiKey = process.env.GEMINI_API_KEY || (import.meta as any).env.VITE_GEMINI_API_KEY || "";
+  } catch (e) {
+    apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY || "";
+  }
+
   if (!apiKey) {
     throw new Error("Gemini API Key is missing. Please set GEMINI_API_KEY or VITE_GEMINI_API_KEY environment variable in your deployment settings.");
   }
@@ -17,7 +23,7 @@ export async function getFinancialAdvice(
 ) {
   const ai = getAI();
   const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
+    model: "gemini-3.1-pro-preview",
     contents: `
       Analyze the following financial data and provide advice in ${language === 'id' ? 'Indonesian' : 'English'}.
       
@@ -47,7 +53,15 @@ export async function getFinancialAdvice(
     }
   });
 
-  return JSON.parse(response.text);
+  const text = response.text;
+  if (!text) throw new Error("No response from AI");
+  
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    console.error("Failed to parse AI response:", text);
+    throw new Error("Invalid response format from AI");
+  }
 }
 
 export async function askFinancialQuestion(
@@ -59,7 +73,7 @@ export async function askFinancialQuestion(
 ) {
   const ai = getAI();
   const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
+    model: "gemini-3.1-pro-preview",
     contents: `
       You are a professional financial advisor. Answer the user's question based on their data.
       User Question: "${question}"
@@ -73,5 +87,7 @@ export async function askFinancialQuestion(
     `
   });
 
-  return response.text;
+  const text = response.text;
+  if (!text) throw new Error("No response from AI");
+  return text;
 }

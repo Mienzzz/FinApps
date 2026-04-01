@@ -26,7 +26,8 @@
         "note": { "type": "string" },
         "date": { "type": "string", "format": "date-time" },
         "walletId": { "type": "string" },
-        "toWalletId": { "type": "string", "description": "For transfers" }
+        "toWalletId": { "type": "string", "description": "For transfers" },
+        "receiptImage": { "type": "string", "description": "Base64 compressed image" }
       },
       "required": ["uid", "type", "amount", "date", "walletId"]
     },

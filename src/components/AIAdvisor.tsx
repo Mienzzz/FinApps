@@ -67,9 +67,11 @@ export default function AIAdvisor() {
   }, []);
 
   useEffect(() => {
-    if (transactions.length > 0 && wallets.length > 0 && !health) {
+    if (loadingChat || !transactions || !wallets) return;
+
+    if (wallets.length > 0 && !health) {
       fetchHealth();
-    } else if (transactions.length === 0 && wallets.length === 0) {
+    } else if (wallets.length === 0) {
       setLoadingHealth(false);
     }
   }, [transactions, wallets]);
@@ -125,10 +127,16 @@ export default function AIAdvisor() {
       const data = await getFinancialAdvice(transactions, debts, wallets, userProfile?.language || 'id');
       setHealth(data);
     } catch (err: any) {
-      console.error(err);
+      console.error("Financial Health Analysis Error:", err);
+      let errorMessage = t.error;
+      
       if (err.message?.includes("API Key is missing")) {
-        setChat(prev => [...prev, { role: 'ai', text: "⚠️ Gemini API Key is missing. Please set GEMINI_API_KEY or VITE_GEMINI_API_KEY in your Vercel/deployment environment variables." }]);
+        errorMessage = "⚠️ API Key missing";
+      } else if (err.message?.includes("Quota exceeded") || err.message?.includes("429") || err.message?.includes("RESOURCE_EXHAUSTED")) {
+        errorMessage = "⚠️ Quota exceeded";
       }
+      
+      setChat(prev => [...prev, { role: 'ai', text: `Analysis Error: ${errorMessage}` }]);
     } finally {
       setLoadingHealth(false);
     }
@@ -147,12 +155,18 @@ export default function AIAdvisor() {
       const answer = await askFinancialQuestion(userQ, transactions, debts, wallets, userProfile?.language || 'id');
       setChat(prev => [...prev, { role: 'ai', text: answer }]);
     } catch (err: any) {
-      console.error(err);
+      console.error("AI Advisor Error:", err);
+      let errorMessage = t.error;
+      
       if (err.message?.includes("API Key is missing")) {
-        setChat(prev => [...prev, { role: 'ai', text: "⚠️ Gemini API Key is missing. Please set GEMINI_API_KEY or VITE_GEMINI_API_KEY in your Vercel/deployment environment variables." }]);
-      } else {
-        setChat(prev => [...prev, { role: 'ai', text: t.error }]);
+        errorMessage = "⚠️ Gemini API Key is missing. Please set GEMINI_API_KEY or VITE_GEMINI_API_KEY in your deployment environment variables.";
+      } else if (err.message?.includes("Quota exceeded") || err.message?.includes("429") || err.message?.includes("RESOURCE_EXHAUSTED")) {
+        errorMessage = "⚠️ AI Quota exceeded. Please try again in a few minutes.";
+      } else if (err.message?.includes("Invalid response format")) {
+        errorMessage = "⚠️ AI returned an invalid response. Please try again.";
       }
+      
+      setChat(prev => [...prev, { role: 'ai', text: errorMessage }]);
     } finally {
       setLoadingChat(false);
     }
@@ -295,7 +309,7 @@ export default function AIAdvisor() {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-1 scrollbar-hide">
+            <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-1 no-scrollbar">
               {chat.length === 0 && (
                 <div className="h-full flex flex-col items-center justify-center text-center text-white/20 space-y-3">
                   <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">

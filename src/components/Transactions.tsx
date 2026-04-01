@@ -26,7 +26,11 @@ import {
   Tag,
   FileText,
   Wallet as WalletIcon,
-  ChevronRight
+  ChevronRight,
+  Camera,
+  Image as ImageIcon,
+  XCircle,
+  Eye
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
@@ -50,7 +54,58 @@ export default function Transactions() {
   const [toWalletId, setToWalletId] = useState('');
   const [note, setNote] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [receiptImage, setReceiptImage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedReceipt, setSelectedReceipt] = useState<string | null>(null);
+
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.6));
+        };
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const compressed = await compressImage(file);
+        setReceiptImage(compressed);
+      } catch (err) {
+        console.error("Error compressing image:", err);
+      }
+    }
+  };
 
   useEffect(() => {
     if (!auth.currentUser) return;
@@ -99,6 +154,7 @@ export default function Transactions() {
         walletId,
         note,
         date: new Date(date).toISOString(),
+        receiptImage: receiptImage || null,
         createdAt: new Date().toISOString()
       };
 
@@ -131,6 +187,7 @@ export default function Transactions() {
     setAmount('');
     setCategory('');
     setNote('');
+    setReceiptImage(null);
     setDate(new Date().toISOString().split('T')[0]);
   };
 
@@ -190,6 +247,10 @@ export default function Transactions() {
     save: lang === 'id' ? 'Simpan Transaksi' : 'Save Transaction',
     placeholderCategory: lang === 'id' ? 'Makan, Gaji, dll' : 'Food, Salary, etc',
     placeholderNote: lang === 'id' ? 'Keterangan tambahan...' : 'Additional info...',
+    receipt: lang === 'id' ? 'Foto Bon / Resi' : 'Receipt Photo',
+    capture: lang === 'id' ? 'Ambil Foto' : 'Take Photo',
+    upload: lang === 'id' ? 'Unggah' : 'Upload',
+    remove: lang === 'id' ? 'Hapus' : 'Remove',
   };
 
   return (
@@ -283,6 +344,19 @@ export default function Transactions() {
                       </div>
                     </div>
                     <div className="flex items-center gap-3 flex-shrink-0">
+                      {transaction.receiptImage && (
+                        <button
+                          onClick={() => setSelectedReceipt(transaction.receiptImage!)}
+                          className="w-10 h-10 rounded-lg overflow-hidden border border-border hover:border-primary transition-colors flex-shrink-0"
+                        >
+                          <img 
+                            src={transaction.receiptImage} 
+                            alt="Receipt" 
+                            className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
+                          />
+                        </button>
+                      )}
                       <div className="text-right">
                         <p className={`text-base sm:text-lg font-extrabold tracking-tight ${
                           transaction.type === 'income' ? 'text-accent' : 
@@ -449,6 +523,53 @@ export default function Transactions() {
                   />
                 </div>
 
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-500 ml-1">{t.receipt}</label>
+                  <div className="flex flex-col gap-3">
+                    {receiptImage ? (
+                      <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-border group">
+                        <img 
+                          src={receiptImage} 
+                          alt="Captured receipt" 
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setReceiptImage(null)}
+                          className="absolute top-2 right-2 p-1.5 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
+                        >
+                          <XCircle size={18} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-3">
+                        <label className="flex flex-col items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded-xl hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer">
+                          <Camera size={24} className="text-slate-400" />
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{t.capture}</span>
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            capture="environment" 
+                            onChange={handleImageChange} 
+                            className="hidden" 
+                          />
+                        </label>
+                        <label className="flex flex-col items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded-xl hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer">
+                          <ImageIcon size={24} className="text-slate-400" />
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{t.upload}</span>
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            onChange={handleImageChange} 
+                            className="hidden" 
+                          />
+                        </label>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <button
                   type="submit"
                   disabled={submitting || (type === 'transfer' && !toWalletId)}
@@ -458,6 +579,40 @@ export default function Transactions() {
                   <span>{submitting ? 'Processing...' : t.save}</span>
                 </button>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Receipt Viewer Modal */}
+      <AnimatePresence>
+        {selectedReceipt && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedReceipt(null)}
+              className="absolute inset-0 bg-black/90 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative z-10 max-w-4xl w-full max-h-[90vh] flex flex-col items-center"
+            >
+              <button 
+                onClick={() => setSelectedReceipt(null)}
+                className="absolute -top-12 right-0 p-2 text-white hover:text-primary transition-colors"
+              >
+                <X size={32} />
+              </button>
+              <img 
+                src={selectedReceipt} 
+                alt="Full receipt" 
+                className="w-full h-full object-contain rounded-lg shadow-2xl"
+                referrerPolicy="no-referrer"
+              />
             </motion.div>
           </div>
         )}

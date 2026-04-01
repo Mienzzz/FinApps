@@ -1,5 +1,5 @@
 {
   "name": "FinApp's Financial Tracker",
   "description": "A comprehensive financial tracking app with AI-powered advice, debt management, and multi-user support using Firebase.",
-  "requestFramePermissions": []
+  "requestFramePermissions": ["camera"]
 }
