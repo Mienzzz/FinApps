@@ -61,21 +61,30 @@ export default function Auth({ mode }: { mode: 'login' | 'register' | 'forgot' }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background relative overflow-hidden">
+      {/* Background Decorative Elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/10 rounded-full blur-[120px]" />
+      </div>
+
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md bg-card border border-border rounded-3xl shadow-sm p-8 sm:p-10"
+        className="w-full max-w-md bg-card border border-border rounded-[2.5rem] shadow-2xl p-8 sm:p-12 relative backdrop-blur-sm"
       >
-        <div className="text-center space-y-6 mb-8">
-          <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
-            <Sparkles size={32} className="text-primary" />
-          </div>
+        <div className="text-center space-y-6 mb-10">
+          <motion.div 
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            className="w-20 h-20 bg-gradient-to-tr from-primary to-indigo-600 rounded-3xl flex items-center justify-center mx-auto shadow-xl shadow-primary/20"
+          >
+            <Sparkles size={40} className="text-white" />
+          </motion.div>
           <div className="space-y-2">
-            <h1 className="text-4xl font-bold tracking-tight text-foreground">
+            <h1 className="text-4xl font-black tracking-tight text-foreground bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/70">
               FinApp's
             </h1>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground font-medium">
               {mode === 'login' && 'Selamat datang kembali!'}
               {mode === 'register' && 'Mulai perjalanan finansialmu'}
               {mode === 'forgot' && 'Atur ulang kata sandimu'}
@@ -86,73 +95,73 @@ export default function Auth({ mode }: { mode: 'login' | 'register' | 'forgot' }
         <AnimatePresence mode="wait">
           {error && (
             <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="bg-destructive/10 border border-destructive/20 text-destructive p-3 rounded-xl text-sm flex items-center gap-3 mb-6"
+              initial={{ opacity: 0, height: 0, y: -10 }}
+              animate={{ opacity: 1, height: 'auto', y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -10 }}
+              className="bg-destructive/10 border border-destructive/20 text-destructive p-4 rounded-2xl text-sm flex items-center gap-3 mb-8"
             >
-              <ShieldCheck size={16} className="flex-shrink-0" />
-              {error}
+              <ShieldCheck size={18} className="flex-shrink-0" />
+              <span className="font-medium">{error}</span>
             </motion.div>
           )}
 
           {message && (
             <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="bg-accent/10 border border-accent/20 text-accent p-3 rounded-xl text-sm flex items-center gap-3 mb-6"
+              initial={{ opacity: 0, height: 0, y: -10 }}
+              animate={{ opacity: 1, height: 'auto', y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -10 }}
+              className="bg-accent/10 border border-accent/20 text-accent p-4 rounded-2xl text-sm flex items-center gap-3 mb-8"
             >
-              <Zap size={16} className="flex-shrink-0" />
-              {message}
+              <Zap size={18} className="flex-shrink-0" />
+              <span className="font-medium">{message}</span>
             </motion.div>
           )}
         </AnimatePresence>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {mode === 'register' && (
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground ml-1">Nama Lengkap</label>
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50" size={18} />
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/70 ml-1">Nama Lengkap</label>
+              <div className="relative group">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/40 group-focus-within:text-primary transition-colors" size={20} />
                 <input
                   type="text"
                   required
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-secondary/50 border border-border focus:border-primary/50 rounded-xl outline-none transition-all text-sm"
+                  className="input-field w-full pl-12 py-4 rounded-2xl"
                   placeholder="John Doe"
                 />
               </div>
             </div>
           )}
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground ml-1">Email</label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50" size={18} />
+          <div className="space-y-2">
+            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/70 ml-1">Email</label>
+            <div className="relative group">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/40 group-focus-within:text-primary transition-colors" size={20} />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-secondary/50 border border-border focus:border-primary/50 rounded-xl outline-none transition-all text-sm"
+                className="input-field w-full pl-12 py-4 rounded-2xl"
                 placeholder="email@contoh.com"
               />
             </div>
           </div>
 
           {mode !== 'forgot' && (
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground ml-1">Kata Sandi</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50" size={18} />
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground/70 ml-1">Kata Sandi</label>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/40 group-focus-within:text-primary transition-colors" size={20} />
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-secondary/50 border border-border focus:border-primary/50 rounded-xl outline-none transition-all text-sm"
+                  className="input-field w-full pl-12 py-4 rounded-2xl"
                   placeholder="••••••••"
                 />
               </div>
@@ -161,7 +170,7 @@ export default function Auth({ mode }: { mode: 'login' | 'register' | 'forgot' }
 
           {mode === 'login' && (
             <div className="text-right">
-              <Link to="/forgot-password" title="Lupa kata sandi?" className="text-xs font-semibold text-primary hover:underline">
+              <Link to="/forgot-password" title="Lupa kata sandi?" className="text-xs font-bold text-primary hover:text-primary/80 transition-colors">
                 Lupa kata sandi?
               </Link>
             </div>
@@ -170,35 +179,35 @@ export default function Auth({ mode }: { mode: 'login' | 'register' | 'forgot' }
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 py-3.5 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm"
+            className="btn-primary w-full py-4 rounded-2xl flex items-center justify-center gap-3 text-lg shadow-xl shadow-primary/20"
           >
             {loading ? (
-              <Loader2 className="animate-spin" size={20} />
+              <Loader2 className="animate-spin" size={24} />
             ) : (
               <>
-                <span>
-                  {mode === 'login' && 'Masuk'}
-                  {mode === 'register' && 'Daftar'}
-                  {mode === 'forgot' && 'Kirim Email'}
+                <span className="font-black">
+                  {mode === 'login' && 'MASUK'}
+                  {mode === 'register' && 'DAFTAR'}
+                  {mode === 'forgot' && 'KIRIM EMAIL'}
                 </span>
-                <ArrowRight size={18} />
+                <ArrowRight size={20} />
               </>
             )}
           </button>
         </form>
 
-        <div className="mt-8 text-center text-sm text-muted-foreground">
+        <div className="mt-10 text-center text-sm">
           {mode === 'login' ? (
-            <p>
+            <p className="text-muted-foreground font-medium">
               Belum punya akun?{' '}
-              <Link to="/register" className="text-primary font-bold hover:underline">
+              <Link to="/register" className="text-primary font-black hover:underline underline-offset-4">
                 Daftar sekarang
               </Link>
             </p>
           ) : (
-            <p>
+            <p className="text-muted-foreground font-medium">
               Sudah punya akun?{' '}
-              <Link to="/login" className="text-primary font-bold hover:underline">
+              <Link to="/login" className="text-primary font-black hover:underline underline-offset-4">
                 Masuk di sini
               </Link>
             </p>

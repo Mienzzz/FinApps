@@ -158,7 +158,7 @@ export default function Dashboard() {
         </motion.div>
 
         <div className="flex flex-col gap-6">
-          <div className="bg-card border border-border rounded-3xl p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-all border-l-4 border-l-primary">
+          <div className="bg-card border border-border rounded-3xl p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-all">
             <div className="flex justify-between items-center">
               <div className="p-3 bg-primary/10 rounded-xl text-primary">
                 <Activity size={24} />
