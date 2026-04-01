@@ -14,7 +14,7 @@ import Transactions from './components/Transactions';
 import Wallets from './components/Wallets';
 import Debts from './components/Debts';
 import Settings from './components/Settings';
-import { Loader2, AlertCircle, Download, X } from 'lucide-react';
+import { Loader2, AlertCircle, Download, X, RefreshCw } from 'lucide-react';
 
 // Error Boundary Component (Simplified for lint)
 const ErrorBoundary = ({ children }: { children: React.ReactNode }) => {
@@ -57,6 +57,20 @@ export default function App() {
     }
   };
 
+  const handleForceUpdate = async () => {
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (let registration of registrations) {
+        await registration.unregister();
+      }
+    }
+    const cacheNames = await caches.keys();
+    for (let cacheName of cacheNames) {
+      await caches.delete(cacheName);
+    }
+    window.location.reload();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -88,6 +102,13 @@ export default function App() {
                 className="bg-white text-primary px-4 py-2 rounded-xl font-bold text-sm hover:bg-white/90 transition-colors"
               >
                 Install
+              </button>
+              <button 
+                onClick={handleForceUpdate}
+                title="Force Update & Clear Cache"
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/70"
+              >
+                <RefreshCw size={18} />
               </button>
               <button 
                 onClick={() => setShowBanner(false)}
