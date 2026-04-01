@@ -25,6 +25,17 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [isStandalone, setIsStandalone] = useState(false);
+
+  useEffect(() => {
+    // Check if app is running in standalone mode
+    const checkStandalone = () => {
+      const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
+      setIsStandalone(isStandaloneMode);
+    };
+    checkStandalone();
+    window.matchMedia('(display-mode: standalone)').addEventListener('change', checkStandalone);
+  }, []);
 
   const triggerEngagement = () => {
     // Dummy interaction to satisfy Chrome's engagement requirement
@@ -83,21 +94,47 @@ export default function App() {
 
     // Trigger dummy engagement after 5 seconds
     const engagementTimeout = setTimeout(triggerEngagement, 5000);
+
+    // --- Auto-Logout Logic ---
+    let inactivityTimer: NodeJS.Timeout;
+    const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes
+
+    const resetInactivityTimer = () => {
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      if (user) {
+        inactivityTimer = setTimeout(() => {
+          console.log('Inactivity timeout reached. Logging out...');
+          auth.signOut();
+        }, INACTIVITY_LIMIT);
+      }
+    };
+
+    const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
     
+    if (user) {
+      activityEvents.forEach(event => {
+        window.addEventListener(event, resetInactivityTimer);
+      });
+      resetInactivityTimer();
+    }
+
     return () => {
       unsubscribe();
       if (interval) clearInterval(interval);
       clearTimeout(engagementTimeout);
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      activityEvents.forEach(event => {
+        window.removeEventListener(event, resetInactivityTimer);
+      });
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      if ('serviceWorker' in navigator) {
-        // We can't easily remove the controllerchange listener without a reference, 
-        // but it's fine for the app's lifecycle.
-      }
     };
-  }, []);
+  }, [user]);
 
   const handleInstallClick = async () => {
-    if (!installPrompt) return;
+    if (!installPrompt) {
+      alert('Untuk menginstal aplikasi ini secara manual:\n1. Klik ikon tiga titik di pojok kanan atas browser\n2. Pilih "Instal Aplikasi" atau "Tambahkan ke Layar Utama"');
+      return;
+    }
     installPrompt.prompt();
     const { outcome } = await installPrompt.userChoice;
     if (outcome === 'accepted') {
@@ -132,14 +169,24 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      {installPrompt && (
-        <div className="fixed bottom-6 right-6 z-[100] animate-bounce">
+      {user && !isStandalone && (
+        <div className="fixed bottom-6 right-6 z-[100]">
           <button 
             onClick={handleInstallClick}
-            className="bg-primary text-white p-4 rounded-full shadow-2xl flex items-center gap-2 hover:scale-110 transition-transform"
+            className="group relative flex items-center justify-center"
           >
-            <Download size={24} />
-            <span className="font-bold pr-2">Install App</span>
+            {/* Tooltip for manual install if prompt is missing */}
+            {!installPrompt && (
+              <div className="absolute bottom-full mb-2 right-0 w-48 bg-slate-800 text-white text-xs p-2 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                Klik menu browser (tiga titik) lalu pilih "Instal Aplikasi" atau "Tambahkan ke Layar Utama"
+              </div>
+            )}
+            <div className={`bg-primary text-white p-4 rounded-full shadow-2xl flex items-center gap-2 hover:scale-110 transition-transform ${!installPrompt ? 'opacity-70 grayscale-[0.5]' : 'animate-bounce'}`}>
+              <Download size={24} />
+              <span className="font-bold pr-2">
+                {installPrompt ? 'Instal App' : 'Cara Instal'}
+              </span>
+            </div>
           </button>
         </div>
       )}
