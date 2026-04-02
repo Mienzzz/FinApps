@@ -18,7 +18,7 @@ export default function Wallets() {
   const [loading, setLoading] = useState(true);
 
   const [name, setName] = useState('');
-  const [type, setType] = useState<'cash' | 'bank' | 'e-wallet' | 'credit'>('cash');
+  const [type, setType] = useState<'cash' | 'bank' | 'e-wallet'>('cash');
   const [balance, setBalance] = useState('');
 
   useEffect(() => {
@@ -28,8 +28,7 @@ export default function Wallets() {
       if (docSnap.exists()) setUserProfile(docSnap.data() as UserProfile);
     });
 
-    const q = query(
-      collection(db, 'wallets'),
+    const q = query(collection(db, 'wallets'),
       where('uid', '==', auth.currentUser.uid)
     );
 
@@ -43,6 +42,15 @@ export default function Wallets() {
       unsubWallets();
     };
   }, []);
+
+  const lang = userProfile?.language || 'en';
+
+  const t = {
+    title: lang === 'id' ? 'Dompet' : 'Wallets',
+    add: lang === 'id' ? 'Tambah' : 'Add',
+    save: lang === 'id' ? 'Simpan' : 'Save',
+    name: lang === 'id' ? 'Nama Dompet' : 'Wallet Name',
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,30 +69,16 @@ export default function Wallets() {
     setBalance('');
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Hapus dompet?')) return;
-    await deleteDoc(doc(db, 'wallets', id));
-  };
-
   const isDark = userProfile?.theme !== 'light';
-
-  const getIcon = (type: string) => {
-    if (type === 'cash') return <Banknote />;
-    if (type === 'bank') return <CreditCard />;
-    if (type === 'e-wallet') return <Smartphone />;
-    return <WalletIcon />;
-  };
 
   return (
     <div className="space-y-6">
 
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold">Wallets</h2>
-        <button 
-          onClick={() => setShowForm(true)}
-          className="bg-primary text-white px-4 py-2 rounded-xl flex gap-2"
-        >
-          <Plus size={16}/> Add
+        <h2 className="text-xl font-bold">{t.title}</h2>
+        <button onClick={() => setShowForm(true)}
+          className="bg-primary text-white px-4 py-2 rounded-xl flex gap-2">
+          <Plus size={16}/> {t.add}
         </button>
       </div>
 
@@ -93,65 +87,35 @@ export default function Wallets() {
           {wallets.map(w => (
             <div key={w.id}
               className={`p-4 rounded-xl border ${
-                isDark
-                  ? 'bg-white/5 border-white/10 text-white'
-                  : 'bg-white border-slate-200 shadow-sm'
+                isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'
               }`}
             >
-              <div className="flex justify-between">
-                {getIcon(w.type)}
-                <Trash2 onClick={() => handleDelete(w.id)} className="cursor-pointer"/>
-              </div>
-
-              <h4 className="mt-2 font-bold">{w.name}</h4>
-              <p className="text-lg">Rp {w.balance}</p>
+              <h4 className="font-bold">{w.name}</h4>
+              <p>Rp {w.balance}</p>
             </div>
           ))}
         </div>
       )}
 
       <Modal open={showForm} onClose={() => setShowForm(false)} isDark={isDark}>
-        <div className="flex justify-between mb-4">
-          <h3 className="font-bold">Add Wallet</h3>
-          <X onClick={() => setShowForm(false)} />
-        </div>
-
         <form onSubmit={handleSubmit} className="space-y-4">
-
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Wallet Name"
-            className={`w-full p-3 rounded-xl border ${
-              isDark ? 'bg-white/5 border-white/10' : 'border-slate-300'
-            }`}
+            placeholder={t.name}
+            className="w-full p-3 border rounded-xl"
           />
-
-          <select
-            value={type}
-            onChange={(e) => setType(e.target.value as any)}
-            className={`w-full p-3 rounded-xl border ${
-              isDark ? 'bg-white/5 border-white/10' : 'border-slate-300'
-            }`}
-          >
-            <option value="cash">Cash</option>
-            <option value="bank">Bank</option>
-            <option value="e-wallet">E-Wallet</option>
-          </select>
 
           <input
             value={balance}
             onChange={(e) => setBalance(formatNumberInput(e.target.value, 'id-ID'))}
             placeholder="0"
-            className={`w-full p-3 rounded-xl border ${
-              isDark ? 'bg-white/5 border-white/10' : 'border-slate-300'
-            }`}
+            className="w-full p-3 border rounded-xl"
           />
 
           <button className="w-full bg-primary text-white py-3 rounded-xl">
-            Save
+            {t.save}
           </button>
-
         </form>
       </Modal>
 
