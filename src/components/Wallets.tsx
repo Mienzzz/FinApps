@@ -6,6 +6,222 @@ import {
   onSnapshot, 
   addDoc,
   deleteDoc,
+  doc
+} from 'firebase/firestore';
+import { db, auth } from '../firebase';
+import { Wallet, UserProfile } from '../types';
+import { 
+  Plus, 
+  Wallet as WalletIcon, 
+  CreditCard, 
+  Banknote, 
+  Smartphone,
+  Trash2,
+  X,
+  Loader2,
+  ChevronRight
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { formatNumberInput, parseNumberInput } from '../lib/format';
+import { handleFirestoreError, OperationType } from '../lib/error';
+
+export default function Wallets() {
+  const [wallets, setWallets] = useState<Wallet[]>([]);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const [name, setName] = useState('');
+  const [type, setType] = useState<'cash' | 'bank' | 'e-wallet' | 'credit'>('cash');
+  const [balance, setBalance] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!auth.currentUser) return;
+
+    const unsubProfile = onSnapshot(doc(db, 'users', auth.currentUser.uid), (doc) => {
+      if (doc.exists()) setUserProfile(doc.data() as UserProfile);
+    });
+
+    const q = query(
+      collection(db, 'wallets'),
+      where('uid', '==', auth.currentUser.uid)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setWallets(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Wallet)));
+      setLoading(false);
+    });
+
+    return () => {
+      unsubProfile();
+      unsubscribe();
+    };
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!auth.currentUser || submitting) return;
+    setSubmitting(true);
+
+    try {
+      await addDoc(collection(db, 'wallets'), {
+        uid: auth.currentUser.uid,
+        name,
+        type,
+        balance: parseFloat(parseNumberInput(balance)),
+        createdAt: new Date().toISOString()
+      });
+      setShowForm(false);
+      setName('');
+      setBalance('');
+    } catch (err) {
+      handleFirestoreError(err, OperationType.CREATE, 'wallets');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Hapus dompet ini?')) return;
+    await deleteDoc(doc(db, 'wallets', id));
+  };
+
+  const formatCurrency = (val: number) => {
+    return new Intl.NumberFormat('id-ID', { 
+      style: 'currency', 
+      currency: 'IDR', 
+      maximumFractionDigits: 0 
+    }).format(val);
+  };
+
+  const getIcon = (type: string) => {
+    switch (type) {
+      case 'cash': return <Banknote size={26} />;
+      case 'bank': return <CreditCard size={26} />;
+      case 'e-wallet': return <Smartphone size={26} />;
+      default: return <WalletIcon size={26} />;
+    }
+  };
+
+  const totalBalance = wallets.reduce((acc, w) => acc + w.balance, 0);
+
+  return (
+    <div className="max-w-5xl mx-auto space-y-8 px-4">
+      
+      {/* HEADER */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold">Dompet</h2>
+          <p className="text-sm text-gray-500">
+            Total: <span className="font-bold text-gray-900">{formatCurrency(totalBalance)}</span>
+          </p>
+        </div>
+
+        <button 
+          onClick={() => setShowForm(true)}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 shadow-md"
+        >
+          <Plus size={18} /> Tambah
+        </button>
+      </div>
+
+      {/* LIST */}
+      <div className="grid gap-4">
+        {wallets.map((w) => (
+          <div key={w.id} className="bg-white border border-gray-200 rounded-xl p-4 flex justify-between items-center shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gray-100 rounded-lg">
+                {getIcon(w.type)}
+              </div>
+              <div>
+                <p className="font-semibold">{w.name}</p>
+                <p className="text-sm text-gray-500">{formatCurrency(w.balance)}</p>
+              </div>
+            </div>
+
+            <button onClick={() => handleDelete(w.id!)} className="text-red-500">
+              <Trash2 size={18} />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* MODAL */}
+      <AnimatePresence>
+        {showForm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+
+            <div className="absolute inset-0 bg-black/50" onClick={() => setShowForm(false)} />
+
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white w-full max-w-md rounded-2xl p-6 z-10 shadow-xl border border-gray-200"
+            >
+              
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold">Dompet Baru</h3>
+                <button onClick={() => setShowForm(false)}>
+                  <X />
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="BCA, GoPay, dll"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none"
+                />
+
+                <select
+                  value={type}
+                  onChange={(e) => setType(e.target.value as any)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none"
+                >
+                  <option value="cash">Tunai</option>
+                  <option value="bank">Bank</option>
+                  <option value="e-wallet">E-Wallet</option>
+                  <option value="credit">Kredit</option>
+                </select>
+
+                <input
+                  type="text"
+                  required
+                  value={balance}
+                  onChange={(e) => setBalance(formatNumberInput(e.target.value, 'id-ID'))}
+                  placeholder="0"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl text-lg font-bold focus:ring-2 focus:ring-purple-500 outline-none"
+                />
+
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full bg-purple-600 text-white py-3 rounded-xl font-semibold shadow-md"
+                >
+                  {submitting ? 'Processing...' : 'Simpan Dompet'}
+                </button>
+
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}import React, { useState, useEffect } from 'react';
+import { 
+  collection, 
+  query, 
+  where, 
+  onSnapshot, 
+  addDoc,
+  deleteDoc,
   doc,
   updateDoc
 } from 'firebase/firestore';
