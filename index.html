@@ -4,47 +4,37 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#8b5cf6" />
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="FinApp">
+
+    <!-- PWA -->
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
+
+    <!-- iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="FinApp" />
+
     <title>FinApp's | Financial Tracker</title>
   </head>
- 
+
   <body>
     <div id="root"></div>
+
     <script type="module" src="/src/main.tsx"></script>
-  <script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', async () => {
-    const reg = await navigator.serviceWorker.register('/service-worker.js', {
-      scope: '/'
-    });
 
-    console.log('SW registered with scope:', reg.scope);
+    <!-- 🔥 SERVICE WORKER -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', async () => {
+          const reg = await navigator.serviceWorker.register('/service-worker.js');
 
-    // force reload supaya dikontrol
-    if (!navigator.serviceWorker.controller) {
-      window.location.reload();
-    }
-  });
-}
+          console.log('SW registered:', reg);
 
-// INSTALL PROMPT
-let deferredPrompt;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-
-  console.log('INSTALL READY');
-
-  setTimeout(() => {
-    deferredPrompt?.prompt();
-  }, 2000);
-});
-</script>
+          if (!navigator.serviceWorker.controller) {
+            window.location.reload();
+          }
+        });
+      }
+    </script>
   </body>
 </html>
-
