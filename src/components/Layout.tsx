@@ -148,7 +148,69 @@ export default function Layout({ children, user }: LayoutProps) {
 
      {/* 🔥 ULTRA MODERN CENTERED FLOATING NAV */}
  {/* Mobile Bottom Nav - Floating Pill Dock */}
-      <div className="md:hidden fixed bottom-6 left-0 right-0 px-6 z-50">
+      {/* 🔥 PREMIUM FLOATING BOTTOM NAV */}
+<div className="md:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50">
+  <nav className={`
+    flex items-center gap-2 px-3 py-2
+    rounded-full
+    shadow-2xl backdrop-blur-xl border
+    ${isDark 
+      ? 'bg-slate-800/80 border-white/10' 
+      : 'bg-white/90 border-slate-200'
+    }
+  `}>
+
+    {navItems.slice(0, 5).map((item) => {
+      const Icon = item.icon;
+      const isActive = location.pathname === item.path;
+
+      return (
+        <Link
+          key={item.path}
+          to={item.path}
+          className="relative flex flex-col items-center justify-center w-14"
+        >
+          {/* 🔥 ACTIVE BACKGROUND (ANIMATED) */}
+          {isActive && (
+            <motion.div
+              layoutId="activeNav"
+              className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 shadow-lg"
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            />
+          )}
+
+          {/* ICON */}
+          <div className={`
+            relative z-10 p-2 rounded-full transition-all duration-300
+            ${isActive 
+              ? 'text-white scale-110' 
+              : isDark 
+                ? 'text-white/60' 
+                : 'text-slate-400'
+            }
+          `}>
+            <Icon size={18} />
+          </div>
+
+          {/* LABEL */}
+          <span className={`
+            text-[9px] mt-1 relative z-10 transition-all
+            ${isActive 
+              ? 'text-white font-semibold' 
+              : isDark 
+                ? 'text-white/50' 
+                : 'text-slate-400'
+            }
+          `}>
+            {item.label}
+          </span>
+        </Link>
+      );
+    })}
+
+  </nav>
+</div>
+      /*<div className="md:hidden fixed bottom-6 left-0 right-0 px-6 z-50">
         <nav className={`mx-auto max-w-sm rounded-2xl border border-border/50 p-2 flex justify-around items-center shadow-2xl backdrop-blur-xl ${isDark ? 'bg-card/80' : 'bg-white/80'}`}>
           {navItems.slice(0, 5).map((item) => {
             const Icon = item.icon;
@@ -174,7 +236,8 @@ export default function Layout({ children, user }: LayoutProps) {
             );
           })}
         </nav>
-      </div>
+      </div>*/
+      
 
       {/* MOBILE SIDEBAR */}
       <AnimatePresence>
