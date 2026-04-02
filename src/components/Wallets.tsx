@@ -21,7 +21,7 @@ import {
   Loader2,
   ChevronRight
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { formatNumberInput, parseNumberInput } from '../lib/format';
 import { handleFirestoreError, OperationType } from '../lib/error';
 
