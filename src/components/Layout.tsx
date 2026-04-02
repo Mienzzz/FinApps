@@ -146,46 +146,71 @@ export default function Layout({ children, user }: LayoutProps) {
         </div>
       </main>
 
-      {/* 🔥 MODERN BOTTOM NAV */}
-      <div className="md:hidden fixed bottom-6 left-0 right-0 px-6 z-[200]">
-        <div className={`mx-auto max-w-md rounded-2xl p-2 flex justify-between items-center shadow-2xl backdrop-blur-xl ${
-          isDark ? 'bg-white/10 border border-white/10' : 'bg-white border border-slate-200'
-        }`}>
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
+     {/* 🔥 ULTRA MODERN CENTERED FLOATING NAV */}
+<div className="md:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-[200]">
+  <div className={`
+    flex items-center justify-between gap-2
+    px-3 py-2
+    rounded-full
+    shadow-2xl backdrop-blur-xl
+    border
+    ${isDark 
+      ? 'bg-slate-800/80 border-white/10' 
+      : 'bg-white/90 border-slate-200'
+    }
+  `}>
 
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className="relative flex flex-col items-center flex-1 py-2"
-              >
-                <div className={`p-2 rounded-xl transition ${
-                  isActive 
-                    ? 'bg-primary text-white scale-110 shadow-lg' 
-                    : 'text-slate-400'
-                }`}>
-                  <Icon size={18} />
-                </div>
+    {navItems.map((item) => {
+      const Icon = item.icon;
+      const isActive = location.pathname === item.path;
 
-                <span className={`text-[10px] mt-1 ${
-                  isActive ? 'text-primary font-bold' : 'text-slate-400'
-                }`}>
-                  {item.label}
-                </span>
+      return (
+        <Link
+          key={item.path}
+          to={item.path}
+          className="relative flex flex-col items-center justify-center w-14"
+        >
+          {/* ACTIVE BACKGROUND */}
+          {isActive && (
+            <motion.div
+              layoutId="navActiveBg"
+              className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 shadow-lg"
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            />
+          )}
 
-                {isActive && (
-                  <motion.div
-                    layoutId="activeNav"
-                    className="absolute -bottom-1 w-1 h-1 bg-primary rounded-full"
-                  />
-                )}
-              </Link>
-            );
-          })}
-        </div>
-      </div>
+          {/* ICON */}
+          <div className={`
+            relative z-10 p-2 rounded-full transition-all duration-300
+            ${isActive 
+              ? 'text-white scale-110' 
+              : isDark 
+                ? 'text-white/60' 
+                : 'text-slate-400'
+            }
+          `}>
+            <Icon size={18}/>
+          </div>
+
+          {/* LABEL */}
+          <span className={`
+            relative z-10 text-[9px] mt-1 font-medium transition-all
+            ${isActive 
+              ? 'text-white' 
+              : isDark 
+                ? 'text-white/50' 
+                : 'text-slate-400'
+            }
+          `}>
+            {item.label}
+          </span>
+
+        </Link>
+      );
+    })}
+
+  </div>
+</div>
 
       {/* MOBILE SIDEBAR */}
       <AnimatePresence>
