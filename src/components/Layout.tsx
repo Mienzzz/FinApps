@@ -80,40 +80,55 @@ export default function Layout({ children, user }: LayoutProps) {
       isDark ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-900'
     }`}>
       
-      {/* SIDEBAR */}
-      <aside className="hidden md:flex w-64 flex-col border-r border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900">
-        <div className="p-6 font-bold text-primary text-xl">
-          FinApp's
-        </div>
+     {/* 🔥 FIXED + MODERN SIDEBAR */}
+<aside className={`hidden md:flex w-64 flex-col border-r h-screen sticky top-0
+  ${isDark 
+    ? 'bg-slate-900 border-white/10 text-white' 
+    : 'bg-white border-slate-200 text-slate-900'
+  }`}
+>
+  {/* LOGO */}
+  <div className="p-6 font-bold text-primary text-xl">
+    FinApp's
+  </div>
 
-        <nav className="flex-1 px-3 space-y-2">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
+  {/* MENU */}
+  <nav className="flex-1 px-3 space-y-2">
+    {navItems.map((item) => {
+      const Icon = item.icon;
+      const isActive = location.pathname === item.path;
 
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition ${
-                  isActive
-                    ? 'bg-primary text-white'
-                    : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10'
-                }`}
-              >
-                <Icon size={20} />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+      return (
+        <Link
+          key={item.path}
+          to={item.path}
+          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+            isActive
+              ? 'bg-primary text-white shadow-sm'
+              : isDark
+                ? 'text-white/70 hover:bg-white/10 hover:text-white'
+                : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+          }`}
+        >
+          <Icon size={20} />
+          <span className="font-medium">{item.label}</span>
+        </Link>
+      );
+    })}
+  </nav>
 
-        <div className="p-4">
-          <button onClick={handleLogout} className="flex items-center gap-2 text-red-500">
-            <LogOut size={18}/> Logout
-          </button>
-        </div>
-      </aside>
+  {/* LOGOUT */}
+  <div className={`p-4 border-t ${
+    isDark ? 'border-white/10' : 'border-slate-200'
+  }`}>
+    <button 
+      onClick={handleLogout} 
+      className="flex items-center gap-2 text-red-500 hover:bg-red-500/10 px-3 py-2 rounded-lg transition"
+    >
+      <LogOut size={18}/> Logout
+    </button>
+  </div>
+</aside>
 
       {/* MAIN */}
       <main className="flex-1 pb-32">
@@ -149,16 +164,16 @@ export default function Layout({ children, user }: LayoutProps) {
      {/* 🔥 ULTRA MODERN CENTERED FLOATING NAV */}
  {/* Mobile Bottom Nav - Floating Pill Dock */}
       {/* 🔥 PREMIUM FLOATING BOTTOM NAV */}
-<div className="md:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50">
-  <nav className={`
-    flex items-center gap-2 px-3 py-2
-    rounded-full
-    shadow-2xl backdrop-blur-xl border
-    ${isDark 
-      ? 'bg-slate-800/80 border-white/10' 
-      : 'bg-white/90 border-slate-200'
-    }
-  `}>
+      <div className="md:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50">
+        <nav className={`
+          flex items-center gap-2 px-3 py-2
+          rounded-full
+          shadow-2xl backdrop-blur-xl border
+          ${isDark 
+            ? 'bg-slate-800/80 border-white/10' 
+            : 'bg-white/90 border-slate-200'
+          }
+        `}>
 
     {navItems.slice(0, 5).map((item) => {
       const Icon = item.icon;
@@ -209,68 +224,88 @@ export default function Layout({ children, user }: LayoutProps) {
     })}
 
   </nav>
-</div>
-      /*<div className="md:hidden fixed bottom-6 left-0 right-0 px-6 z-50">
-        <nav className={`mx-auto max-w-sm rounded-2xl border border-border/50 p-2 flex justify-around items-center shadow-2xl backdrop-blur-xl ${isDark ? 'bg-card/80' : 'bg-white/80'}`}>
-          {navItems.slice(0, 5).map((item) => {
+</div>   
+
+     {/* 🔥 MODERN MOBILE SIDEBAR */}
+<AnimatePresence>
+  {isMobileMenuOpen && (
+    <>
+      {/* BACKDROP */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={() => setIsMobileMenuOpen(false)}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[150]"
+      />
+
+      {/* SIDEBAR */}
+      <motion.div 
+        initial={{ x: -320 }}
+        animate={{ x: 0 }}
+        exit={{ x: -320 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 25 }}
+        className={`fixed left-0 top-0 bottom-0 w-72 z-[200] p-6 flex flex-col
+          ${isDark 
+            ? 'bg-slate-900 text-white border-r border-white/10' 
+            : 'bg-white text-slate-900 border-r border-slate-200'
+          }
+        `}
+      >
+        {/* HEADER */}
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-xl font-bold text-primary">FinApp's</h2>
+          <button 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="p-2 rounded-lg hover:bg-black/10 dark:hover:bg-white/10"
+          >
+            <X size={20}/>
+          </button>
+        </div>
+
+        {/* MENU */}
+        <nav className="flex flex-col gap-2">
+          {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
+
             return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`relative p-3 rounded-xl transition-all duration-300 ${
-                  isActive 
-                    ? 'bg-primary text-white shadow-lg shadow-primary/30 scale-110' 
-                    : isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'
-                }`}
+              <Link 
+                key={item.path} 
+                to={item.path} 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`
+                  flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+                  ${isActive 
+                    ? 'bg-primary text-white shadow-md' 
+                    : isDark 
+                      ? 'text-white/70 hover:bg-white/10 hover:text-white'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  }
+                `}
               >
-                <Icon size={20} />
-                {isActive && (
-                  <motion.div 
-                    layoutId="activeTab"
-                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-white rounded-full"
-                  />
-                )}
+                <Icon size={20}/>
+                <span className="font-medium">{item.label}</span>
               </Link>
             );
           })}
         </nav>
-      </div>*/
-      
 
-      {/* MOBILE SIDEBAR */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <>
-            <motion.div 
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 bg-black/60 z-[150]"
-            />
-            <motion.div 
-              initial={{ x: -300 }}
-              animate={{ x: 0 }}
-              exit={{ x: -300 }}
-              className="fixed left-0 top-0 bottom-0 w-64 bg-white dark:bg-slate-900 z-[200] p-6"
-            >
-              <button onClick={() => setIsMobileMenuOpen(false)} className="mb-6">
-                <X />
-              </button>
+        {/* FOOTER */}
+        <div className="mt-auto pt-6 border-t border-white/10 dark:border-white/10">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-500/10 w-full transition"
+          >
+            <LogOut size={20}/>
+            <span className="font-medium">Logout</span>
+          </button>
+        </div>
 
-              {navItems.map((item) => (
-                <Link 
-                  key={item.path} 
-                  to={item.path} 
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block py-3"
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      </motion.div>
+    </>
+  )}
+</AnimatePresence>
     </div>
   );
 }
