@@ -316,7 +316,12 @@ export default function Transactions() {
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.98 }}
-                  className="bg-card border border-border rounded-xl p-4 hover:border-primary/50 transition-all group"
+                  className={`rounded-xl p-4 border transition-all group
+					${isDark
+					? 'bg-slate-900 border-white/10 hover:bg-slate-800 hover:border-primary/40'
+					: 'bg-white border-slate-200 hover:bg-slate-50 hover:border-primary/40'
+					}
+`					}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -329,8 +334,12 @@ export default function Transactions() {
                          transaction.type === 'expense' ? <ArrowDownRight size={24} /> : <ArrowLeftRight size={24} />}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-bold text-sm text-foreground truncate">{transaction.category}</p>
-                        <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-1">
+                        <p className={`font-bold text-sm truncate ${
+							isDark ? 'text-white' : 'text-slate-900'
+							}`}>{transaction.category}</p>
+                        <div className={`flex items-center gap-2 text-[11px] mt-1 ${
+							isDark ? 'text-slate-400' : 'text-slate-500'
+						}`}>
                           <span className="flex items-center gap-1 whitespace-nowrap">
                             <Calendar size={12} />
                             {format(new Date(transaction.date), 'dd MMM yyyy')}
@@ -366,7 +375,9 @@ export default function Transactions() {
                           {formatCurrency(transaction.amount)}
                         </p>
                         {transaction.note && (
-                          <p className="text-[10px] text-slate-400 truncate max-w-[80px] sm:max-w-[120px] ml-auto font-medium">
+                          <p className={`text-[10px] truncate ml-auto font-medium ${
+							isDark ? 'text-slate-400' : 'text-slate-500'
+							}`}>
                             {transaction.note}
                           </p>
                         )}
