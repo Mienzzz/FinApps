@@ -24,6 +24,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatNumberInput, parseNumberInput } from '../lib/format';
 import { handleFirestoreError, OperationType } from '../lib/error';
+import Modal from '../components/Modal';
 
 export default function Wallets() {
   const [wallets, setWallets] = useState<any[]>([]);
