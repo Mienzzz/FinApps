@@ -1,18 +1,19 @@
 const CACHE_NAME = 'finapps-cache-v1';
 const ASSETS = [
-  '/',
+  '/login',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
+    caches.open(CACHE_NAME).then(cache => {
+      console.log('Caching core assets V2.2.6...');
       return cache.addAll(ASSETS);
     })
   );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
