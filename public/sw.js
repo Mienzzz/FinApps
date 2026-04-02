@@ -1,6 +1,6 @@
 const CACHE_NAME = 'finapps-cache-v1';
 const ASSETS = [
-  '/login',
+  '/',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png'
