@@ -20,6 +20,21 @@ import { doc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'motion/react';
 import { UserProfile } from '../types';
 
+const handleInstall = async () => {
+  const prompt = (window as any).deferredPrompt;
+  if (!prompt) return alert('Install belum tersedia');
+
+  prompt.prompt();
+  await prompt.userChoice;
+};
+
+<button
+  onClick={handleInstall}
+  className="bg-primary text-white px-4 py-2 rounded-xl text-sm font-bold shadow"
+>
+  Install App
+</button>
+
 interface LayoutProps {
   children: React.ReactNode;
   user: any;
