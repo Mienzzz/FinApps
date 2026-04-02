@@ -1,48 +1,35 @@
-const CACHE_NAME = 'finapps-offline-v2';
-
-const STATIC_ASSETS = [
+const CACHE_NAME = 'finapp-v2';
+const URLS = [
   '/',
   '/index.html',
-  '/manifest.json',
   '/icon-192.png',
   '/icon-512.png'
 ];
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
-  );
+// INSTALL
+self.addEventListener('install', (e) => {
   self.skipWaiting();
+  e.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(URLS))
+  );
 });
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) return caches.delete(key);
-        })
-      )
-    )
-  );
+// ACTIVATE
+self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
+// FETCH (OFFLINE FIRST)
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      return (
-        cached ||
-        fetch(event.request)
-          .then((res) => {
-            const clone = res.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-            return res;
-          })
-          .catch(() => caches.match('/'))
-      );
+    caches.match(event.request).then((res) => {
+      return res || fetch(event.request).catch(() => {
+        return new Response('Offline Mode', {
+          headers: { 'Content-Type': 'text/plain' }
+        });
+      });
     })
   );
 });
