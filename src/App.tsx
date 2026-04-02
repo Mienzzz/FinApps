@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Component, ReactNode } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   BrowserRouter as Router, 
   Routes, 
@@ -14,9 +14,9 @@ import Transactions from './components/Transactions';
 import Wallets from './components/Wallets';
 import Debts from './components/Debts';
 import Settings from './components/Settings';
-import { Loader2, AlertCircle, Download, X, RefreshCw, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
-// Error Boundary Component (Simplified for lint)
+// Error Boundary (simple)
 const ErrorBoundary = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
@@ -25,31 +25,42 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // 🔥 PWA STATE
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstall, setShowInstall] = useState(false);
+
   const triggerEngagement = () => {
-    // Dummy interaction to satisfy Chrome's engagement requirement
     console.log('Engagement triggered');
     window.dispatchEvent(new Event('resize'));
-    // We don't use alert anymore as requested for silent background process
   };
 
   useEffect(() => {
+    // AUTH
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
     });
 
+    // 🔥 PWA INSTALL LISTENER
+    const installHandler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstall(true);
+      console.log("PWA install ready");
+    };
+
+    window.addEventListener("beforeinstallprompt", installHandler);
+
+    // SERVICE WORKER UPDATE LOGIC
     let interval: NodeJS.Timeout;
 
-    // Silent Background Update Logic
     if ('serviceWorker' in navigator) {
       const handleControllerChange = () => {
-        // Automatically reload when a new service worker takes control
         window.location.reload();
       };
 
       navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
 
-      // Periodically check for updates every 5 minutes
       interval = setInterval(() => {
         navigator.serviceWorker.getRegistration().then(reg => {
           if (reg) {
@@ -61,7 +72,6 @@ export default function App() {
         });
       }, 5 * 60 * 1000);
 
-      // Initial check on load
       navigator.serviceWorker.getRegistration().then(reg => {
         if (reg) {
           reg.update();
@@ -72,18 +82,18 @@ export default function App() {
       });
     }
 
-    // Trigger dummy engagement after 5 seconds
+    // trigger engagement
     const engagementTimeout = setTimeout(triggerEngagement, 5000);
 
-    // --- Auto-Logout Logic ---
+    // AUTO LOGOUT
     let inactivityTimer: NodeJS.Timeout;
-    const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes
+    const INACTIVITY_LIMIT = 15 * 60 * 1000;
 
     const resetInactivityTimer = () => {
       if (inactivityTimer) clearTimeout(inactivityTimer);
       if (user) {
         inactivityTimer = setTimeout(() => {
-          console.log('Inactivity timeout reached. Logging out...');
+          console.log('Auto logout');
           auth.signOut();
         }, INACTIVITY_LIMIT);
       }
@@ -103,24 +113,27 @@ export default function App() {
       if (interval) clearInterval(interval);
       clearTimeout(engagementTimeout);
       if (inactivityTimer) clearTimeout(inactivityTimer);
+
       activityEvents.forEach(event => {
         window.removeEventListener(event, resetInactivityTimer);
       });
+
+      // cleanup PWA
+      window.removeEventListener("beforeinstallprompt", installHandler);
     };
   }, [user]);
 
-  const handleForceUpdate = async () => {
-    if ('serviceWorker' in navigator) {
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      for (let registration of registrations) {
-        await registration.unregister();
-      }
-    }
-    const cacheNames = await caches.keys();
-    for (let cacheName of cacheNames) {
-      await caches.delete(cacheName);
-    }
-    window.location.reload();
+  // 🔥 HANDLE INSTALL CLICK
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+
+    console.log("User choice:", choice);
+
+    setDeferredPrompt(null);
+    setShowInstall(false);
   };
 
   if (loading) {
@@ -138,37 +151,43 @@ export default function App() {
     <ErrorBoundary>
       <Router>
         <Routes>
-          {/* Public Routes */}
+          {/* Public */}
           <Route path="/login" element={!user ? <Auth mode="login" /> : <Navigate to="/" />} />
           <Route path="/register" element={!user ? <Auth mode="register" /> : <Navigate to="/" />} />
           <Route path="/forgot-password" element={!user ? <Auth mode="forgot" /> : <Navigate to="/" />} />
 
-          {/* Private Routes */}
-          <Route 
-            path="/" 
-            element={user ? <Layout user={user}><Dashboard /></Layout> : <Navigate to="/login" />} 
-          />
-          <Route 
-            path="/transactions" 
-            element={user ? <Layout user={user}><Transactions /></Layout> : <Navigate to="/login" />} 
-          />
-          <Route 
-            path="/wallets" 
-            element={user ? <Layout user={user}><Wallets /></Layout> : <Navigate to="/login" />} 
-          />
-          <Route 
-            path="/debts" 
-            element={user ? <Layout user={user}><Debts /></Layout> : <Navigate to="/login" />} 
-          />
-          <Route 
-            path="/settings" 
-            element={user ? <Layout user={user}><Settings /></Layout> : <Navigate to="/login" />} 
-          />
+          {/* Private */}
+          <Route path="/" element={user ? <Layout user={user}><Dashboard /></Layout> : <Navigate to="/login" />} />
+          <Route path="/transactions" element={user ? <Layout user={user}><Transactions /></Layout> : <Navigate to="/login" />} />
+          <Route path="/wallets" element={user ? <Layout user={user}><Wallets /></Layout> : <Navigate to="/login" />} />
+          <Route path="/debts" element={user ? <Layout user={user}><Debts /></Layout> : <Navigate to="/login" />} />
+          <Route path="/settings" element={user ? <Layout user={user}><Settings /></Layout> : <Navigate to="/login" />} />
 
-          {/* Fallback */}
+          {/* fallback */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Router>
+
+      {/* 🔥 INSTALL BUTTON */}
+      {showInstall && (
+        <button
+          onClick={handleInstallClick}
+          style={{
+            position: "fixed",
+            bottom: "20px",
+            right: "20px",
+            padding: "12px 16px",
+            backgroundColor: "#8b5cf6",
+            color: "#fff",
+            border: "none",
+            borderRadius: "10px",
+            cursor: "pointer",
+            zIndex: 9999
+          }}
+        >
+          Install App
+        </button>
+      )}
     </ErrorBoundary>
   );
 }
