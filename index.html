@@ -11,18 +11,36 @@
     <link rel="apple-touch-icon" href="/icon-192.png" />
     <title>FinApp's | Financial Tracker</title>
   </head>
+ 
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('SW registered'))
-            .catch(err => console.log('SW failed', err));
-        });
-      }
-    </script>
+  <script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(() => console.log('SW registered'))
+      .catch((err) => console.log('SW failed', err));
+  });
+}
+
+// INSTALL PROMPT
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  console.log('App can be installed');
+
+  // tampilkan popup otomatis setelah 3 detik
+  setTimeout(() => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+    }
+  }, 3000);
+});
+</script>
   </body>
 </html>
 
