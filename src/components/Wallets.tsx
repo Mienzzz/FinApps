@@ -30,7 +30,8 @@ import { formatNumberInput, parseNumberInput } from '../lib/format';
 import { handleFirestoreError, OperationType } from '../lib/error';
 
 export default function Wallets() {
-  const [wallets, setWallets] = useState<Wallet[]>([]);
+  //const [wallets, setWallets] = useState<Wallet[]>([]);
+  const [wallets, setWallets] = useState<any[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
