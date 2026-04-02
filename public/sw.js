@@ -18,15 +18,17 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-      );
-    })
+    caches.keys().then(names =>
+      Promise.all(names.map(n => {
+        if (n !== CACHE_NAME) {
+          console.log('Deleting old cache:', n);
+          return caches.delete(n);
+        }
+      }))
+    )
   );
   self.clients.claim();
 });
-
 self.addEventListener('fetch', (event) => {
   if (event.request.mode === 'navigate') {
     event.respondWith(
