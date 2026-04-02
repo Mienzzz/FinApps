@@ -149,27 +149,36 @@ export default function Wallets() {
       </div>
 
       {/* MODAL */}
-      <AnimatePresence>
-        {showForm && (
-          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-            
-            <div 
-              onClick={() => setShowForm(false)}
-              className={`absolute inset-0 ${
-                isDark ? 'bg-black/80' : 'bg-black/40'
-              }`}
-            />
+     <AnimatePresence>
+  {showForm && (
+    <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
 
-            <motion.div
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.9 }}
-              className={`w-full max-w-md p-6 rounded-2xl border ${
-                isDark
-                  ? 'bg-slate-900 border-white/10 text-white'
-                  : 'bg-white border-slate-200 text-slate-900 shadow-xl'
-              }`}
-            >
+      {/* OVERLAY */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={() => setShowForm(false)}
+        className={`absolute inset-0 ${
+          isDark ? 'bg-black/80' : 'bg-black/40'
+        }`}
+      />
+
+      {/* MODAL */}
+      <motion.div 
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        
+        // 🔥 INI KUNCI UTAMA
+        onClick={(e) => e.stopPropagation()}
+        
+        className={`relative z-10 w-full max-w-md p-6 rounded-2xl border ${
+          isDark
+            ? 'bg-slate-900 border-white/10 text-white'
+            : 'bg-white border-slate-200 text-slate-900 shadow-xl'
+        }`}
+      >
               <div className="flex justify-between mb-4">
                 <h3 className="font-bold">Add Wallet</h3>
                 <X onClick={() => setShowForm(false)} />
