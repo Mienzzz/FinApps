@@ -76,70 +76,142 @@ export default function Layout({ children, user }: LayoutProps) {
   }, [isDark]);
 
   return (
-    <div className={`min-h-screen flex flex-col md:flex-row ${isDark ? 'bg-background text-white' : 'bg-slate-50 text-slate-900'}`}>
+    <div className={`min-h-screen flex flex-col md:flex-row transition-colors duration-300 ${
+      isDark ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-900'
+    }`}>
       
+      {/* SIDEBAR */}
+      <aside className="hidden md:flex w-64 flex-col border-r border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900">
+        <div className="p-6 font-bold text-primary text-xl">
+          FinApp's
+        </div>
+
+        <nav className="flex-1 px-3 space-y-2">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition ${
+                  isActive
+                    ? 'bg-primary text-white'
+                    : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10'
+                }`}
+              >
+                <Icon size={20} />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="p-4">
+          <button onClick={handleLogout} className="flex items-center gap-2 text-red-500">
+            <LogOut size={18}/> Logout
+          </button>
+        </div>
+      </aside>
+
       {/* MAIN */}
-      <main className="flex-1 pb-24">
+      <main className="flex-1 pb-32">
         
-        {/* HEADER */}
-        <header className="flex justify-between items-center p-4 border-b bg-white dark:bg-background sticky top-0 z-40">
+        {/* HEADER FIX DARK */}
+        <header className={`flex justify-between items-center p-4 border-b sticky top-0 z-40 backdrop-blur-xl ${
+          isDark 
+            ? 'bg-slate-900/80 border-white/10' 
+            : 'bg-white/80 border-slate-200'
+        }`}>
           
           <button className="md:hidden" onClick={() => setIsMobileMenuOpen(true)}>
             <Menu />
           </button>
 
-          <div className="flex gap-2">
-            <button onClick={toggleLanguage}><Globe /></button>
-            <button onClick={toggleTheme}>
-              {isDark ? <Sun /> : <Moon />}
+          <div className="flex gap-3">
+            <button onClick={toggleLanguage} className="p-2 rounded-lg border border-slate-200 dark:border-white/10">
+              <Globe size={18}/>
+            </button>
+
+            <button onClick={toggleTheme} className="p-2 rounded-lg border border-slate-200 dark:border-white/10">
+              {isDark ? <Sun size={18}/> : <Moon size={18}/>}
             </button>
           </div>
         </header>
 
         {/* CONTENT */}
-        <div className="p-6 pb-28">
+        <div className="p-6">
           {children}
         </div>
       </main>
 
-      {/* ✅ FIXED BOTTOM NAV (PASTI MUNCUL) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[999] bg-white dark:bg-card border-t flex justify-around py-3 shadow-xl">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = location.pathname === item.path;
+      {/* 🔥 MODERN BOTTOM NAV */}
+      <div className="md:hidden fixed bottom-6 left-0 right-0 px-6 z-[200]">
+        <div className={`mx-auto max-w-md rounded-2xl p-2 flex justify-between items-center shadow-2xl backdrop-blur-xl ${
+          isDark ? 'bg-white/10 border border-white/10' : 'bg-white border border-slate-200'
+        }`}>
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
 
-          return (
-            <Link 
-              key={item.path} 
-              to={item.path} 
-              className={`flex flex-col items-center text-xs ${
-                isActive ? 'text-primary font-bold' : 'text-gray-400'
-              }`}
-            >
-              <Icon size={20} />
-              {item.label}
-            </Link>
-          );
-        })}
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className="relative flex flex-col items-center flex-1 py-2"
+              >
+                <div className={`p-2 rounded-xl transition ${
+                  isActive 
+                    ? 'bg-primary text-white scale-110 shadow-lg' 
+                    : 'text-slate-400'
+                }`}>
+                  <Icon size={18} />
+                </div>
+
+                <span className={`text-[10px] mt-1 ${
+                  isActive ? 'text-primary font-bold' : 'text-slate-400'
+                }`}>
+                  {item.label}
+                </span>
+
+                {isActive && (
+                  <motion.div
+                    layoutId="activeNav"
+                    className="absolute -bottom-1 w-1 h-1 bg-primary rounded-full"
+                  />
+                )}
+              </Link>
+            );
+          })}
+        </div>
       </div>
 
-      {/* MOBILE MENU */}
+      {/* MOBILE SIDEBAR */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
             <motion.div 
               onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 bg-black/50 z-[900]"
+              className="fixed inset-0 bg-black/60 z-[150]"
             />
             <motion.div 
               initial={{ x: -300 }}
               animate={{ x: 0 }}
               exit={{ x: -300 }}
-              className="fixed left-0 top-0 bottom-0 w-64 bg-white dark:bg-background z-[999] p-6"
+              className="fixed left-0 top-0 bottom-0 w-64 bg-white dark:bg-slate-900 z-[200] p-6"
             >
-              <button onClick={() => setIsMobileMenuOpen(false)}><X /></button>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="mb-6">
+                <X />
+              </button>
+
               {navItems.map((item) => (
-                <Link key={item.path} to={item.path} className="block py-3">
+                <Link 
+                  key={item.path} 
+                  to={item.path} 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block py-3"
+                >
                   {item.label}
                 </Link>
               ))}
