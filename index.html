@@ -9,32 +9,61 @@
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
 
-    <!-- iOS -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="FinApp" />
+    <!-- Splash -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="FinApp">
 
-    <title>FinApp's | Financial Tracker</title>
+    <title>FinApp</title>
+
+    <style>
+      /* SPLASH SCREEN */
+      #splash {
+        position: fixed;
+        inset: 0;
+        background: #0f172a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        color: white;
+        font-family: sans-serif;
+        flex-direction: column;
+      }
+    </style>
   </head>
 
   <body>
+    <!-- SPLASH -->
+    <div id="splash">
+      <h1>FinApp</h1>
+      <p>Loading...</p>
+    </div>
+
     <div id="root"></div>
 
     <script type="module" src="/src/main.tsx"></script>
 
-    <!-- 🔥 SERVICE WORKER -->
     <script>
+      // REMOVE SPLASH
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          document.getElementById('splash')?.remove();
+        }, 1500);
+      });
+
+      // SERVICE WORKER
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', async () => {
-          const reg = await navigator.serviceWorker.register('/service-worker.js');
-
-          console.log('SW registered:', reg);
-
-          if (!navigator.serviceWorker.controller) {
-            window.location.reload();
-          }
-        });
+        navigator.serviceWorker.register('/service-worker.js');
       }
+
+      // INSTALL PROMPT
+      let deferredPrompt;
+
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        window.deferredPrompt = deferredPrompt;
+      });
     </script>
   </body>
 </html>
