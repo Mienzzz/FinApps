@@ -17,10 +17,24 @@
     <script type="module" src="/src/main.tsx"></script>
   <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(() => console.log('SW registered'))
-      .catch((err) => console.log('SW failed', err));
+  navigator.serviceWorker.register('/sw.js').then((reg) => {
+
+    console.log('SW registered');
+
+    // 🔥 PENTING: reload otomatis saat SW aktif
+    if (reg.waiting) {
+      window.location.reload();
+    }
+
+    reg.addEventListener('updatefound', () => {
+      const newWorker = reg.installing;
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'activated') {
+          window.location.reload();
+        }
+      });
+    });
+
   });
 }
 
@@ -31,14 +45,13 @@ window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
 
-  console.log('App can be installed');
+  console.log('READY INSTALL');
 
-  // tampilkan popup otomatis setelah 3 detik
   setTimeout(() => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
     }
-  }, 3000);
+  }, 2000);
 });
 </script>
   </body>
