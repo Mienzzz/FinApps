@@ -16,7 +16,6 @@
     <title>FinApp</title>
 
     <style>
-      /* SPLASH SCREEN */
       #splash {
         position: fixed;
         inset: 0;
@@ -33,7 +32,6 @@
   </head>
 
   <body>
-    <!-- SPLASH -->
     <div id="splash">
       <h1>FinApp</h1>
       <p>Loading...</p>
@@ -56,13 +54,10 @@
         navigator.serviceWorker.register('/service-worker.js');
       }
 
-      // INSTALL PROMPT
-      let deferredPrompt;
-
+      // ❌ HAPUS INSTALL PROMPT TOTAL
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
-        deferredPrompt = e;
-        window.deferredPrompt = deferredPrompt;
+        console.log('Install prompt disabled');
       });
     </script>
   </body>
