@@ -78,40 +78,6 @@ export default function Layout({ children, user }: LayoutProps) {
   return (
     <div className={`min-h-screen flex flex-col md:flex-row ${isDark ? 'bg-background text-white' : 'bg-slate-50 text-slate-900'}`}>
       
-      {/* DESKTOP SIDEBAR */}
-      <aside className="hidden md:flex w-64 flex-col border-r border-border h-screen sticky top-0 bg-white dark:bg-card">
-        <div className="p-6 font-bold text-primary text-xl">
-          FinApp's
-        </div>
-
-        <nav className="flex-1 px-3 space-y-2">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl ${
-                  isActive
-                    ? 'bg-primary text-white'
-                    : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10'
-                }`}
-              >
-                <Icon size={20} />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="p-4">
-          <button onClick={handleLogout} className="flex items-center gap-2 text-red-500">
-            <LogOut size={18} /> Logout
-          </button>
-        </div>
-      </aside>
-
       {/* MAIN */}
       <main className="flex-1 pb-24">
         
@@ -131,19 +97,25 @@ export default function Layout({ children, user }: LayoutProps) {
         </header>
 
         {/* CONTENT */}
-        <div className="p-6">
+        <div className="p-6 pb-28">
           {children}
         </div>
       </main>
 
-      {/* 🔥 FIX: BOTTOM NAV SELALU DI ATAS */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[200] bg-white dark:bg-card border-t flex justify-around py-2 shadow-lg">
+      {/* ✅ FIXED BOTTOM NAV (PASTI MUNCUL) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[999] bg-white dark:bg-card border-t flex justify-around py-3 shadow-xl">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
 
           return (
-            <Link key={item.path} to={item.path} className={`flex flex-col items-center text-xs ${isActive ? 'text-primary' : 'text-gray-400'}`}>
+            <Link 
+              key={item.path} 
+              to={item.path} 
+              className={`flex flex-col items-center text-xs ${
+                isActive ? 'text-primary font-bold' : 'text-gray-400'
+              }`}
+            >
               <Icon size={20} />
               {item.label}
             </Link>
@@ -151,19 +123,19 @@ export default function Layout({ children, user }: LayoutProps) {
         })}
       </div>
 
-      {/* MOBILE SIDEBAR */}
+      {/* MOBILE MENU */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
             <motion.div 
               onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 bg-black/50 z-[150]"
+              className="fixed inset-0 bg-black/50 z-[900]"
             />
             <motion.div 
               initial={{ x: -300 }}
               animate={{ x: 0 }}
               exit={{ x: -300 }}
-              className="fixed left-0 top-0 bottom-0 w-64 bg-white dark:bg-background z-[200] p-6"
+              className="fixed left-0 top-0 bottom-0 w-64 bg-white dark:bg-background z-[999] p-6"
             >
               <button onClick={() => setIsMobileMenuOpen(false)}><X /></button>
               {navItems.map((item) => (
